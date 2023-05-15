@@ -13,7 +13,7 @@
 
 \pagestyle{fancy}
 \fancyhf{}
-\rhead{stigland@kth.se}
+%\rhead{stigland@kth.se}
 \lhead{DD2424 - Deep Learning in Data Science}
 \rfoot{Page \thepage}
 
@@ -57,5 +57,72 @@
 
 \newpage
 
+\section*{LSTM Backpropagation}
+
+\subsection*{Forward pass}
+	The forward pass is defined as follows, 
+	\begin{align*}
+		\bm{i}_t &= \sigma(W_i \bm{h}_{t-1} + U_i\bm{x}_t) \\
+		\bm{f}_t &= \sigma(W_f \bm{h}_{t-1} + U_f\bm{x}_t) \\
+		\bm{e}_t &= \sigma(W_e \bm{h}_{t-1} + U_e\bm{x}_t) \\
+		\tilde{\bm{c}}_t &= \tanh(W_c\bm{h}_{t-1} + U_c\bm{x}_t) \\
+		\bm{c}_t &= \bm{f}_t \bullet \bm{c}_{t-1} + \bm{i}_t \bullet \tilde{\bm{c}}_t \\
+		\bm{h}_t &= \bm{e}_t \bullet \tanh(\bm{c}_t)\\
+		\bm{o}_t &= V \bm{h}_t \\
+		\bm{p}_t &= \text{softmax}(\bm{o}_t)
+	\end{align*}
+	where $\bullet$ denotes element by element multiplication and $\bm{e}_t$ denotes the output/exposure gate. 
+
+\subsection*{Backward pass}
+	In order to find the analytical gradients and compute the backward pass, we employ the chain rule. First, we consider the gradient of the cross-entropy loss w.r.t. the output for the final time step. We define 
+	$$\frac{\partial L}{\partial \bm{o}_t} = -(\bm{y}_t - \bm{p}_t)^T, \quad \forall\, t = 1, 2, \dots, T$$
+	and denote $\bm{g}_t := \frac{\partial L}{\partial \bm{o}_t}$. Then, in order to compute the gradients of the individual weights, we need to first find define the gradients with respect to the hidden activation, the gates and the memory cell. Hence, we  first consider the partial derivative of the loss with respect to the hidden units, i.e. $h_t$ for $t = 1, 2, \dots, T$, and consider two cases: $t= T$ and $t = 1, 2, \dots, T-1$. 
+
+\subsubsection*{I - the case of $t = T$}
+	For this case, the gradient computation is straightforward by employing the chain rule. Specifically, we have that
+	$$\frac{\partial L}{\partial \bm{h}_t} = \frac{\partial L}{\partial \bm{o}_t} \frac{\partial\bm{o}_t}{\partial \bm{h}_t} = \bm{g}_t V$$ 
+
+\subsubsection*{II - the case of $t < T$}
+	In order to perform the backward pass for earlier time steps in the sequence, we need to consider how the information propagates forward, i.e. the hidden unit at $t-1$ passes through the hidden unit at $t$, and since the hidden unit at $t$ accounts for the input, output and exposure gates, we have that
+	\begin{align*}
+		\frac{\partial L}{\partial \bm{h}_t} &= \bm{g}_t V + \frac{\partial L}{\partial \bm{i}_{t+1}}\frac{\partial \bm{i}_{t+1}}{\partial \bm{h}_t} + \frac{\partial L}{\partial \bm{f}_{t+1}}\frac{\partial \bm{f}_{t+1}}{\partial \bm{h}_t}  + \frac{\partial L}{\partial \bm{e}_{t+1}}\frac{\partial \bm{e}_{t+1}}{\partial \bm{h}_t} + \frac{\partial L}{\partial \tilde{\bm{c}}_{t+1}}\frac{\partial \tilde{\bm{c}}_{t+1}}{\partial \bm{h}_t}\\
+		&= \bm{g}_t V  + \frac{\partial L}{\partial \bm{i}_{t+1}} \frac{\partial \bm{i}_{t+1}}{\partial \bm{a}_{i, t+1}} W_i + \frac{\partial L}{\partial \bm{f}_{t+1}}  \frac{\partial \bm{f}_{t+1}}{\partial \bm{a}_{f, t+1}}W_f  + \frac{\partial L}{\partial \bm{e}_{t+1}}  \frac{\partial \bm{e}_{t+1}}{\partial \bm{a}_{e t+1}}W_e + \frac{\partial L}{\partial \tilde{\bm{c}}_{t+1}}  \frac{\partial \tilde{\bm{c}}_{t+1}}{\partial \bm{a}_{c, t+1}}W_c
+	\end{align*}
+	where $\bm{a}_{, t}$ denote the activations at time $t$, e.g.
+	$$\bm{i}_t := \sigma(\bm{a}_{i, t})$$ 
+
+\subsubsection*{III - gradients for gates and memory cell}
+	Further, for notational convenience, we set 
+	$$ \tilde{\bm{g}}_t := \bm{g_t} \frac{\partial \bm{o}_t}{\partial \bm{h}_t}$$
+	such that we can expand the terms in the above equation per the follwing:
+	\begin{align*}
+		\frac{\partial L}{\partial \bm{i}_{t}} &= \tilde{\bm{g}}_t\,\bm{e}_t (1 - \tanh^2(\bm{c}_t)) \tilde{\bm{c}}_t\\ %\frac{\partial \bm{a}_{i, t}}{\partial \bm{h}_{t-1}} \\
+		\frac{\partial L}{\partial \bm{f}_{t}} &= \tilde{\bm{g}}_t\,\bm{e}_t (1 - \tanh^2(\bm{c}_t)) \bm{c}_{t-1}\\ %\frac{\partial \bm{a}_{f, t}}{\partial \bm{h}_{t-1}}  \\
+		\frac{\partial L}{\partial \bm{e}_{t}} &=\tilde{\bm{g}}_t\,  \tanh(\bm{c}_t)\\ %\frac{\partial \bm{a}_{e, t}}{\partial \bm{h}_{t-1}}\\
+		\frac{\partial L}{\partial \tilde{\bm{c}}_{t}} &= \tilde{\bm{g}}_t\, \bm{e}_t (1 - \tanh^2(\bm{c}_t)) \bm{i}_t %(1 - \tanh^2(\bm{a}_{c, t}) %\frac{\partial \bm{a}_{c, t}}{\partial \bm{h}_{t-1}}\\
+	\end{align*}
+
+\subsubsection*{IV - gradients for activations}
+	In order to properly compute the gradients, we also need to consider the gradients with respect to the activations. Thus, we have that
+	\begin{align*}
+		\frac{\partial \bm{i}_{t}}{\partial \bm{a}_{i, t}} &= \sigma(\bm{a}_{i, t})(1 - \sigma(\bm{a}_{i, t}))\\
+		\frac{\partial \bm{f}_{t}}{\partial \bm{a}_{f, t}} &= \sigma(\bm{a}_{f, t})(1 - \sigma(\bm{a}_{f, t}))\\
+		\frac{\partial \bm{e}_{t}}{\partial \bm{a}_{e, t}} &= \sigma(\bm{a}_{e, t})(1 - \sigma(\bm{a}_{e, t}))\\
+		\frac{\partial \tilde{\bm{c}}_{t}}{\partial \bm{a}_{c, t}} &= 1 - \tanh^2(\bm{a}_{c, t})
+	\end{align*}
+
+\subsubsection*{V - putting it all together}
+	Finally, given that we have iteratively computed all the gradients for the hidden units, the gates, the memory cell and their respective activations, we have that
+	\begin{align}
+		 \frac{\partial L}{\partial W_i} &= \sum_{t=1}^T \tilde{\bm{g}}_t\, \bm{e}_t (1 - \tanh^2(\bm{c}_t)) \tilde{\bm{c}}_t \sigma(\bm{a}_{i, t})(1 - \sigma(\bm{a}_{i, t})) \bm{h}_{t-1} \\
+		 \frac{\partial L}{\partial U_i} &= \sum_{t=1}^T \tilde{\bm{g}}_t\, \bm{e}_t (1 - \tanh^2(\bm{c}_t)) \tilde{\bm{c}}_t \sigma(\bm{a}_{i, t})(1 - \sigma(\bm{a}_{i, t})) \bm{x}_{t} \\
+		\frac{\partial L}{\partial W_f} &= \sum_{t=1}^T \tilde{\bm{g}}_t\,\bm{e}_t (1 - \tanh^2(\bm{c}_t)) \bm{c}_{t-1} \sigma(\bm{a}_{f, t})(1 - \sigma(\bm{a}_{f, t})) \bm{h}_{t-1} \\ 
+		\frac{\partial L}{\partial U_f} &= \sum_{t=1}^T \tilde{\bm{g}}_t\,\bm{e}_t (1 - \tanh^2(\bm{c}_t)) \bm{c}_{t-1} \sigma(\bm{a}_{f, t})(1 - \sigma(\bm{a}_{f, t})) \bm{x}_{t} \\ 
+		\frac{\partial L}{\partial W_e} &= \sum_{t=1}^T \tilde{\bm{g}}_t\,  \tanh(\bm{c}_t) \sigma(\bm{a}_{e, t})(1 - \sigma(\bm{a}_{e, t})) \bm{h}_{t-1} \\
+		\frac{\partial L}{\partial U_e} &= \sum_{t=1}^T \tilde{\bm{g}}_t\,  \tanh(\bm{c}_t) \sigma(\bm{a}_{e, t})(1 - \sigma(\bm{a}_{e, t})) \bm{x}_{t} \\
+		\frac{\partial L}{\partial W_c} &= \sum_{t=1}^T \tilde{\bm{g}}_t\, \bm{e}_t (1 - \tanh^2(\bm{c}_t)) \bm{i}_t (1 - \tanh^2(\bm{a}_{c, t})) \bm{h}_{t-1} \\
+		\frac{\partial L}{\partial U_c} &= \sum_{t=1}^T \tilde{\bm{g}}_t\, \bm{e}_t (1 - \tanh^2(\bm{c}_t)) \bm{i}_t (1 - \tanh^2(\bm{a}_{c, t})) \bm{x}_{t} \\
+		\frac{\partial L}{\partial V} &= \sum_{t=1}^T \bm{g}_t\bm{h}_t
+	\end{align}
 
 \end{document}
