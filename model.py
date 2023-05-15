@@ -3,6 +3,52 @@
 import numpy as np
 from misc import softMax
 
+class AdamOpt:
+    def __init__(
+            self,
+            beta1: float,
+            beta2: float,
+            eps: float,
+            weights: list
+        ):
+        # save init params
+        self.beta1 = beta1
+        self.beta2 = beta2
+        self.eps = eps
+        
+        # init dicts for saving moments
+        self.m, self.v = {}, {}
+        
+        # init moments
+        for name, weight in weights.items():
+            self.m[name] = np.zeros(weight.shape)
+            self.v[name] = np.zeros(weight.shape)
+            
+    def calcMoment(self, beta, moment, grad):
+        newMoment = beta * moment + (1 - beta) * grad
+        return newMoment
+    
+    def step(self, weight, grad, t):     
+        # update fist moment and correct bias
+        self.m[weight] = self.calcMoment(
+            self.beta1 ** t,
+            self.m[weight], 
+            grad
+        )
+        
+        # update second moment and correct bias
+        self.v[weight] = self.calcMoment(
+            self.beta2 ** t,
+            self.v[weight], 
+            np.square(grad)
+        )
+        
+        mCorrected = self.m[weight] / (1 - self.beta1 ** t)
+        vCorrected = self.v[weight] / (1 - self.beta2 ** t)
+        stepUpdate = mCorrected / (np.sqrt(vCorrected) + self.eps)
+        return stepUpdate
+
+
 class recurrentNeuralNetwork:
     def __init__(
             self, 
