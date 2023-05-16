@@ -8,8 +8,8 @@ from model import recurrentNeuralNetwork, LSTM
 
 # get paths
 home_path = os.getcwd()
-data_path = home_path + '\\data\\'
-plot_path = home_path + '\\plots\\'
+data_path = home_path + '/data/'
+plot_path = home_path + '/plots/'
 
 # get text data
 fname = 'shakespeare.txt'
@@ -23,7 +23,8 @@ with open(fpath, 'r') as fo:
 data = [char 
             for line in data
                 for word in list(line)
-                    for char in list(word)]
+                    for char in list(word)
+]
 
 # create word-key-word mapping
 keyToChar = dict(enumerate(np.unique(data)))
@@ -31,9 +32,9 @@ charToKey = dict([(val, key) for key, val in keyToChar.items()])
 
 # define params
 K  = len(keyToChar)
-m = 100
+m = 200
 sigma = 0.01
-seq_length = 20
+seq_length = 30
 
 # define X, w. one-hot encoded representations
 data = oneHotEncode(np.array([charToKey[char] for char in data]))
@@ -48,6 +49,13 @@ lstmNet = LSTM(
     sigma=sigma,
     seed=2
 )
+
+# lstmNet = recurrentNeuralNetwork(
+#     K=K, 
+#     m=m, 
+#     sigma=sigma, 
+#     seed=2
+# )
 
 # save best weights
 weights_best = lstmNet.weights.copy()
@@ -84,7 +92,7 @@ for i in range(2000000):
         
         # convert to chars and print sequence
         sequence = ''.join([keyToChar[key] for key in sequence])
-        print('\nGenerated sequence \n\t {}\n'.format(sequence))
+        print('\nGenerated sequence \n\n {}\n'.format(sequence))
         
     # update e
     if e < (n - seq_length):

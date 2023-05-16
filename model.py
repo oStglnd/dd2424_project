@@ -590,10 +590,10 @@ class LSTM:
         h_grad = g.T[-1] @ self.weights['V']
         c_grad = h_grad * E.T[-1] * (1 - np.square(np.tanh(CNEW.T[-1])))
         
-        i_grad = c_grad * COLD.T[-1]
-        f_grad = c_grad * CNEW.T[-2]
-        cOld_grad = c_grad * I.T[-1]
-        e_grad = h_grad * np.tanh(CNEW.T[-1])
+        i_grad = c_grad * COLD.T[-1] * I.T[-1] * (1 - I.T[-1])
+        f_grad = c_grad * CNEW.T[-2] * F.T[-1] * (1 - F.T[-1])
+        cOld_grad = c_grad * I.T[-1] * (1 - np.square(COLD.T[-1]))
+        e_grad = h_grad * np.tanh(CNEW.T[-1]) * E.T[-1] * (1 - E.T[-1])
         
         # init lists
         h_grads = [h_grad]
@@ -617,7 +617,7 @@ class LSTM:
         # iteratively compute grads
         for g, i, f, f_prev, e, c_old, c_new, c_newPrev in reversed(iterObj):
             
-            h_grad = g @ self.weights['V'] 
+            h_grad = g @ self.weights['V']
             h_grad += i_grad @ self.weights['W_i']
             h_grad += f_grad @ self.weights['W_f']
             h_grad += e_grad @ self.weights['W_e']
@@ -625,10 +625,10 @@ class LSTM:
             
             c_grad = c_grad * f_prev + h_grad * e * (1 - np.square(np.tanh(c_new)))
             
-            i_grad = c_grad * c_old
-            f_grad = c_grad * c_newPrev
-            cOld_grad = c_grad * i
-            e_grad = h_grad * np.tanh(c_new)
+            i_grad = c_grad * c_old * i * (1 - i)
+            f_grad = c_grad * c_newPrev * f * (1 - f)
+            cOld_grad = c_grad * i * (1 - np.square(c_old))
+            e_grad = h_grad * np.tanh(c_new) * e * (1 - e)
             
             # i_grad = h_grad * e * (1 - np.square(np.tanh(c_new))) * c_old
             # f_grad = h_grad * e * (1 - np.square(np.tanh(c_new))) * c_newPrev
@@ -652,27 +652,27 @@ class LSTM:
         
         # compute W and U grads
         # ai_grads = i_grads * sigmoid(I) * (1 - sigmoid(I))
-        ai_grads = i_grads * I * (1 - I)
-        Wi_grads = ai_grads @ H.T[:-1]
-        Ui_grads = ai_grads @ X
-        bi_grads = np.sum(ai_grads, axis=1)[:, np.newaxis]
+        # ai_grads = i_grads * I * (1 - I)
+        Wi_grads = i_grads @ H.T[:-1]
+        Ui_grads = i_grads @ X
+        bi_grads = np.sum(i_grads, axis=1)[:, np.newaxis]
         
         # af_grads = f_grads * sigmoid(F) * (1 - sigmoid(F))
-        af_grads = f_grads * F * (1 - F)
-        Wf_grads = af_grads @ H.T[:-1]
-        Uf_grads = af_grads @ X
-        bf_grads = np.sum(af_grads, axis=1)[:, np.newaxis]
+        #af_grads = f_grads * F * (1 - F)
+        Wf_grads = f_grads @ H.T[:-1]
+        Uf_grads = f_grads @ X
+        bf_grads = np.sum(f_grads, axis=1)[:, np.newaxis]
         
         # ae_grads = e_grads * sigmoid(E) * (1 - sigmoid(E))
-        ae_grads = e_grads * E * (1 - E)
-        We_grads = ae_grads @ H.T[:-1]
-        Ue_grads = ae_grads @ X
-        be_grads = np.sum(ae_grads, axis=1)[:, np.newaxis]
+        #ae_grads = e_grads * E * (1 - E)
+        We_grads = e_grads @ H.T[:-1]
+        Ue_grads = e_grads @ X
+        be_grads = np.sum(e_grads, axis=1)[:, np.newaxis]
         
-        ac_grads = cOld_grads * (1 - np.square(COLD))
-        Wc_grads = ac_grads @ H.T[:-1]
-        Uc_grads = ac_grads @ X
-        bc_grads = np.sum(ac_grads, axis=1)[:, np.newaxis]
+        # ac_grads = cOld_grads * (1 - np.square(COLD))
+        Wc_grads = cOld_grads @ H.T[:-1]
+        Uc_grads = cOld_grads @ X
+        bc_grads = np.sum(cOld_grads, axis=1)[:, np.newaxis]
         
         # save grads in dict
         grads = {

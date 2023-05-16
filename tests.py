@@ -36,7 +36,7 @@ charToKey = dict([(val, key) for key, val in keyToChar.items()])
 K  = len(keyToChar)
 m = 100
 sigma = 0.01
-seq_length = 20
+seq_length = 25
 
 # define X, and Y, w. one-hot encoded representations
 data = oneHotEncode(np.array([charToKey[char] for char in data]))
