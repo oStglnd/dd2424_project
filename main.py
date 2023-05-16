@@ -7,11 +7,9 @@ from misc import oneHotEncode
 from model import recurrentNeuralNetwork, LSTM
 
 # get paths
-# home_path = os.path.dirname(os.getcwd())
 home_path = os.getcwd()
 data_path = home_path + '\\data\\'
 plot_path = home_path + '\\plots\\'
-# results_path = home_path + '\\a4\\results\\'
 
 # get text data
 fname = 'shakespeare.txt'
