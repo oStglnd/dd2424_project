@@ -2,18 +2,18 @@
 import os
 import json
 import numpy as np
-import matploblit.pyplot as plt
+import matplotlib.pyplot as plt
 from misc import oneHotEncode
 from model import recurrentNeuralNetwork
 
 # get paths
 home_path = os.path.dirname(os.getcwd())
-data_path = home_path + '\\data\\a4\\'
-plot_path = home_path + '\\a4\\plots\\'
-# results_path = home_path + '\\a4\\results\\'
+data_path = home_path + '/dd2424_project/data/'
+# plot_path = home_path + '/dd2424_project/plots/'
+# results_path = home_path + '/dd2424_project/results/'
 
 # get text data
-fname = 'goblet_book.txt'
+fname = 'shakespeare.txt'
 fpath = data_path + fname
 
 # read text file
@@ -101,15 +101,16 @@ for i in range(2000000):
             break
             
 # plot results
-steps = [step * 10 for step in range(len(lossHist))]
-plt.plot(steps, lossHist, 'r', linewidth=1.5, alpha=1.0, label='Loss')
-plt.xlim(0, steps[-1])
-plt.xlabel('Step')
-plt.ylabel('', rotation=0, labelpad=20)
-plt.title('Smooth loss for $4$ epochs')
-# plt.legend(loc='upper right')
-plt.savefig(plot_path + 'rnn_loss.png', dpi=200)
-plt.show()
+
+# steps = [step * 10 for step in range(len(lossHist))]
+# plt.plot(steps, lossHist, 'r', linewidth=1.5, alpha=1.0, label='Loss')
+# plt.xlim(0, steps[-1])
+# plt.xlabel('Step')
+# plt.ylabel('', rotation=0, labelpad=20)
+# plt.title('Smooth loss for $4$ epochs')
+# # plt.legend(loc='upper right')
+# plt.savefig(plot_path + 'rnn_loss.png', dpi=200)
+# plt.show()
 
 recurrentNet.weights = weights_best
 sequence = recurrentNet.synthesizeText(
