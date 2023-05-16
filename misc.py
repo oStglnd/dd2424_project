@@ -3,6 +3,20 @@ import numpy as np
 import pickle
 import scipy.io as sio
 
+
+def sigmoid(S: np.array) -> np.array:
+    """
+    Parameters
+    ----------
+    S : dxN score matrix
+
+    Returns
+    -------
+    S : dxN score matrix w. applied sigmoid activation
+    """
+    return 1 / (1 + np.exp(-S))
+    
+
 def softMax(S: np.array) -> np.array:
     """
     Parameters
