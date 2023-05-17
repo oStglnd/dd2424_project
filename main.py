@@ -4,7 +4,7 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 from misc import oneHotEncode
-from model import recurrentNeuralNetwork, LSTM
+from model import VanillaRNN, LSTM
 
 # get paths
 home_path = os.getcwd()
@@ -43,14 +43,14 @@ for i in range(len(data) - seq_length):
     X.append(data[i:i+seq_length])
 
 # init networks
-lstmNet = LSTM(
+rnn = LSTM(
     K=K,
     m=m,
     sigma=sigma,
     seed=2
 )
 
-# lstmNet = recurrentNeuralNetwork(
+# rnn = VanillaRNN(
 #     K=K, 
 #     m=m, 
 #     sigma=sigma, 
@@ -58,24 +58,24 @@ lstmNet = LSTM(
 # )
 
 # save best weights
-weights_best = lstmNet.weights.copy()
+weights_best = rnn.weights.copy()
 
 epoch_n = 0
 print ('\n------EPOCH {}--------\n'.format(epoch_n))
 
 lossHist = []
-loss_smooth = lstmNet.computeLoss(X[0], X[1])
+loss_smooth = rnn.computeLoss(X[0], X[1])
 loss_best = loss_smooth
 
 n = len(X)
 e = 0
 for i in range(2000000):
-    lstmNet.train(X[e], X[e+1], eta=0.1)
-    loss = lstmNet.computeLoss(X[e], X[e+1])
+    rnn.train(X[e], X[e+1], eta=0.1)
+    loss = rnn.computeLoss(X[e], X[e+1])
     
     loss_smooth = 0.999 * loss_smooth + 0.001 * loss
     if loss_smooth < loss_best:
-        weights_best = lstmNet.weights.copy()
+        weights_best = rnn.weights.copy()
         loss_best = loss_smooth
 
     if (i % 10 == 0) and i > 0:
@@ -85,7 +85,7 @@ for i in range(2000000):
             print('Iteration {}, LOSS: {}'.format(i, loss_smooth))
         
     if i % 1000 == 0:
-        sequence = lstmNet.synthesizeText(
+        sequence = rnn.synthesizeText(
             x0=X[e+1][:1], 
             n=250
         )
@@ -99,7 +99,7 @@ for i in range(2000000):
         e += seq_length
     else:
         e = 0
-        lstmNet.hprev = np.zeros(shape=(m, 1))
+        rnn.hprev = np.zeros(shape=(m, 1))
         
         epoch_n += 1
         print ('\n------EPOCH {}--------\n'.format(epoch_n))
@@ -119,7 +119,7 @@ for i in range(2000000):
 # plt.show()
 
 # recurrentNet.weights = weights_best
-sequence = lstmNet.synthesizeText(
+sequence = rnn.synthesizeText(
     x0=X[0][:1], 
     n=200
 )
