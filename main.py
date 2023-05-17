@@ -32,9 +32,9 @@ charToKey = dict([(val, key) for key, val in keyToChar.items()])
 
 # define params
 K  = len(keyToChar)
-m = 200
+m = 256
 sigma = 0.01
-seq_length = 30
+seq_length = 50
 
 # define X, w. one-hot encoded representations
 data = oneHotEncode(np.array([charToKey[char] for char in data]))
@@ -70,7 +70,7 @@ loss_best = loss_smooth
 n = len(X)
 e = 0
 for i in range(2000000):
-    lstmNet.train(X[e], X[e+1], eta=0.1)
+    lstmNet.train(X[e], X[e+1], eta=0.01)
     loss = lstmNet.computeLoss(X[e], X[e+1])
     
     loss_smooth = 0.999 * loss_smooth + 0.001 * loss
@@ -100,6 +100,7 @@ for i in range(2000000):
     else:
         e = 0
         lstmNet.hprev = np.zeros(shape=(m, 1))
+        lstmNet.cprev = np.zeros(shape=(m, 1))
         
         epoch_n += 1
         print ('\n------EPOCH {}--------\n'.format(epoch_n))
@@ -118,12 +119,12 @@ for i in range(2000000):
 # plt.savefig(plot_path + 'rnn_loss.png', dpi=200)
 # plt.show()
 
-# recurrentNet.weights = weights_best
+lstmNet.weights = weights_best
 sequence = lstmNet.synthesizeText(
     x0=X[0][:1], 
-    n=200
+    n=500
 )
 
 # convert to chars and print sequence
 sequence = ''.join([keyToChar[key] for key in sequence])
-print('\nGenerated sequence \n\t {}\n'.format(sequence))
+print('\nGenerated sequence \n\n {}\n'.format(sequence))

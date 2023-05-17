@@ -416,6 +416,7 @@ class LSTM:
         
         # initialize hprev
         self.hprev = np.zeros(shape=(self.m, 1))
+        self.cprev = np.zeros(shape=(self.m, 1))
 
 
     def evaluate(
@@ -438,7 +439,7 @@ class LSTM:
         fList = []
         eList = []
         cOldList = []
-        cNewList = [np.zeros(shape=(self.m, 1))]
+        cNewList = [self.cprev.copy()]
         
         # iterate through recurrent block
         for x in X:
@@ -473,6 +474,7 @@ class LSTM:
         # update hprev
         if train:
             self.hprev = H[:, -1][:, np.newaxis]
+            self.cprev = CNEW[:, -1][:, np.newaxis]
             return P, I, F, E, COLD, CNEW, H
         else:
             return P
@@ -629,11 +631,6 @@ class LSTM:
             f_grad = c_grad * c_newPrev * f * (1 - f)
             cOld_grad = c_grad * i * (1 - np.square(c_old))
             e_grad = h_grad * np.tanh(c_new) * e * (1 - e)
-            
-            # i_grad = h_grad * e * (1 - np.square(np.tanh(c_new))) * c_old
-            # f_grad = h_grad * e * (1 - np.square(np.tanh(c_new))) * c_newPrev
-            # e_grad = h_grad * np.tanh(c_new)
-            # c_grad = h_grad * e * (1 - np.square(np.tanh(c_new))) * i
         
             # store grads f. stacking
             h_grads.append(h_grad)
@@ -651,25 +648,18 @@ class LSTM:
         cOld_grads = np.vstack(cOld_grads[::-1]).T
         
         # compute W and U grads
-        # ai_grads = i_grads * sigmoid(I) * (1 - sigmoid(I))
-        # ai_grads = i_grads * I * (1 - I)
         Wi_grads = i_grads @ H.T[:-1]
         Ui_grads = i_grads @ X
         bi_grads = np.sum(i_grads, axis=1)[:, np.newaxis]
         
-        # af_grads = f_grads * sigmoid(F) * (1 - sigmoid(F))
-        #af_grads = f_grads * F * (1 - F)
         Wf_grads = f_grads @ H.T[:-1]
         Uf_grads = f_grads @ X
         bf_grads = np.sum(f_grads, axis=1)[:, np.newaxis]
         
-        # ae_grads = e_grads * sigmoid(E) * (1 - sigmoid(E))
-        #ae_grads = e_grads * E * (1 - E)
         We_grads = e_grads @ H.T[:-1]
         Ue_grads = e_grads @ X
         be_grads = np.sum(e_grads, axis=1)[:, np.newaxis]
         
-        # ac_grads = cOld_grads * (1 - np.square(COLD))
         Wc_grads = cOld_grads @ H.T[:-1]
         Uc_grads = cOld_grads @ X
         bc_grads = np.sum(cOld_grads, axis=1)[:, np.newaxis]
