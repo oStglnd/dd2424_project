@@ -4,7 +4,7 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 from misc import oneHotEncode, readData, prepareData, generateSequences
-from model import VanillaRNN, LSTM
+from model import VanillaRNN, LSTM, LSTM_2L
 import random
 
 # get paths
@@ -61,12 +61,12 @@ def main():
 
 
     # init networks, replace class name to instantiate differnent models
-    # Available RNN-models: ['VanillaRNN', 'LSTM']
+    # Available RNN-models: ['VanillaRNN', 'LSTM', 'LSTM_2L']
     """ 
     TODO: 
-    Create LSTM2 (2-layer LSTM)
+    Create LSTM_2L (2-layer LSTM)
     """
-    rnn = VanillaRNN(
+    rnn = LSTM_2L(
         K=K,
         m=m,
         sigma=sigma,

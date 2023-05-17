@@ -47,6 +47,12 @@ class AdamOpt:
         vCorrected = self.v[weight] / (1 - self.beta2 ** t)
         stepUpdate = mCorrected / (np.sqrt(vCorrected) + self.eps)
         return stepUpdate
+
+
+
+# =====================================================
+# ------------------ RNN Superclass --------------------
+# =====================================================
     
 class RNN: 
     def __init__(
@@ -242,6 +248,12 @@ class RNN:
             # update weight
             weight -= eta * grads[key] / np.sqrt(self.momentum[key] + 1e-12)
 
+
+
+# =====================================================
+# ------------------ Vanilla RNN ----------------------
+# =====================================================
+
 class VanillaRNN(RNN):
     def __init__(
             self, 
@@ -372,7 +384,11 @@ class VanillaRNN(RNN):
         
         return grads
     
-    
+
+# =====================================================
+# ------------------ 1-layer LSTM ---------------------
+# =====================================================
+
 class LSTM(RNN):
 
     def __init__(
@@ -380,10 +396,18 @@ class LSTM(RNN):
             K: int, 
             m: list,
             sigma: float,
-            seed: int
+            seed: int,
+            LSTMSubLayer = False, # Is this LSTM the first layer of a 2-layer LSTM?
+            K_out = 0
         ):
-        
+
         super().__init__(K,m,sigma,seed)
+
+        # if K_out not defined, make it the same as K
+        if K_out == 0:
+            self.K_out = K
+        else:
+            self.K_out = K_out
         
         # init LSTM weight matrices
         weightPairs = [
@@ -399,14 +423,17 @@ class LSTM(RNN):
             self.weights[weights[1]] = np.random.randn(self.m, self.K) * sigma
             self.weights[weights[2]] = np.zeros(shape=(self.m, 1))
         
-        self.weights['V'] = np.random.randn(self.K, self.m) * sigma
-        self.weights['c'] = np.zeros(shape=(self.K, 1))
+        self.weights['V'] = np.random.randn(self.K_out, self.m) * sigma
+        self.weights['c'] = np.zeros(shape=(self.K_out, 1))
         
         for key, weight in self.weights.items():
             self.momentum[key] = np.zeros(shape=weight.shape)
         
         # initialize cprev
         self.cprev = np.zeros(shape=(self.m, 1))
+
+        # Mark this LSTM as part of a 2-layer LSTM (first layer) or not
+        self.LSTMSubLayer = LSTMSubLayer
         
 
     # LSTM Forward Pass
@@ -468,7 +495,10 @@ class LSTM(RNN):
             self.cprev = CNEW[:, -1][:, np.newaxis]
             return P, I, F, E, COLD, CNEW, H
         else:
-            return P
+            if self.LSTMSubLayer:
+                return P, H
+            else:
+                return P
 
     # LSTM Backward Pass
     def computeGrads(
@@ -589,3 +619,72 @@ class LSTM(RNN):
             }
         
         return grads
+
+
+# =====================================================
+# ------------------ 2-layer LSTM ---------------------
+# =====================================================
+
+class LSTM_2L(RNN):
+
+    def __init__(
+            self, 
+            K: int, 
+            m: list,
+            sigma: float,
+            seed: int
+        ):
+    
+        super().__init__(K,m,sigma,seed)
+        
+        self.lstm1 = LSTM(K, m, sigma, seed, LSTMSubLayer=True) 
+        self.lstm2 = LSTM(m, m, sigma, seed, LSTMSubLayer=False, K_out = K) 
+
+        self.weights = [self.lstm1.weights, self.lstm2.weights]
+    
+
+    def evaluate(
+            self, 
+            X: np.array,
+            train: bool
+        ) -> np.array:
+
+        _, H = self.lstm1.evaluate(X,train=False)
+        P = self.lstm2.evaluate(H.T[1:],train=False)
+
+        return P
+
+
+    def train(
+            self, 
+            X: np.array, 
+            Y: np.array,
+            eta: float
+        ):
+        """
+        Parameters
+        ----------
+        X : Nxd data matrix
+        Y : NxK one-hot encoded label matrix
+        eta: learning rate
+        """
+        # get grads from self.computeGrads and update weights
+        # w. GD and learning parameter eta
+        _, H = self.lstm1.evaluate(X,train=False)
+
+        grads = [self.lstm1.computeGrads(X, Y), self.lstm2.computeGrads(H.T[1:], Y)]
+
+        lstms = [self.lstm1, self.lstm2]
+
+        for idx, lstm in enumerate(lstms):
+            for key, weight in lstm.weights.items():
+
+                # clip gradient
+                grads[idx][key] = np.clip(grads[idx][key], -5, 5)
+            
+                # calculate momentum
+                lstm.momentum[key] += np.square(grads[idx][key])
+            
+                # update weight
+                weight -= eta * grads[idx][key] / np.sqrt(lstm.momentum[key] + 1e-12)
+
