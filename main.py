@@ -3,8 +3,9 @@ import os
 import json
 import numpy as np
 import matplotlib.pyplot as plt
-from misc import oneHotEncode
+from misc import oneHotEncode, readData, prepareData, generateSequences
 from model import VanillaRNN, LSTM
+import random
 
 # get paths
 home_path = os.getcwd()
@@ -16,31 +17,24 @@ fname = 'shakespeare.txt'
 fpath = data_path + fname
 
 # read text file
-with open(fpath, 'r') as fo:
-    data = fo.readlines()
-    
-# split lines into words and words into chars
-data = [char 
-            for line in data
-                for word in list(line)
-                    for char in list(word)
-]
+data = readData(fpath)
 
 # create word-key-word mapping
-keyToChar = dict(enumerate(np.unique(data)))
-charToKey = dict([(val, key) for key, val in keyToChar.items()])
+keyToChar, charToKey = prepareData(data)
 
 # define params
-K  = len(keyToChar)
-m = 200
+K = len(keyToChar)  # nr of unique characters
+m = 200  # dimensionality of its hidden state
 sigma = 0.01
-seq_length = 30
+seq_length = 25
 
-# define X, w. one-hot encoded representations
+# define X, w. one-hot encoded representations of sequences
 data = oneHotEncode(np.array([charToKey[char] for char in data]))
-X = []
-for i in range(len(data) - seq_length):
-    X.append(data[i:i+seq_length])
+X = generateSequences(data, seq_length)
+
+# Shuffle sequences in X
+random.seed(42)
+random.shuffle(X)
 
 # init networks
 rnn = LSTM(
@@ -61,18 +55,22 @@ rnn = LSTM(
 weights_best = rnn.weights.copy()
 
 epoch_n = 0
-print ('\n------EPOCH {}--------\n'.format(epoch_n))
+print('\n------EPOCH {}--------\n'.format(epoch_n))
 
 lossHist = []
-loss_smooth = rnn.computeLoss(X[0], X[1])
+loss_smooth = rnn.computeLoss(X[0][:-1], X[0][1:])
 loss_best = loss_smooth
 
 n = len(X)
 e = 0
 for i in range(2000000):
-    rnn.train(X[e], X[e+1], eta=0.1)
-    loss = rnn.computeLoss(X[e], X[e+1])
-    
+
+    x_seq = X[e][:-1]
+    y_seq = X[e][1:]
+
+    rnn.train(x_seq, y_seq, eta=0.1)
+    loss = rnn.computeLoss(x_seq, y_seq)
+
     loss_smooth = 0.999 * loss_smooth + 0.001 * loss
     if loss_smooth < loss_best:
         weights_best = rnn.weights.copy()
@@ -80,33 +78,36 @@ for i in range(2000000):
 
     if (i % 10 == 0) and i > 0:
         lossHist.append(loss_smooth)
-        
+
         if i % 100 == 0:
             print('Iteration {}, LOSS: {}'.format(i, loss_smooth))
-        
+
     if i % 1000 == 0:
+
         sequence = rnn.synthesizeText(
-            x0=X[e+1][:1], 
+            x0=X[e][:1],
+
             n=250
         )
-        
+
         # convert to chars and print sequence
         sequence = ''.join([keyToChar[key] for key in sequence])
         print('\nGenerated sequence \n\n {}\n'.format(sequence))
-        
+
     # update e
-    if e < (n - seq_length):
-        e += seq_length
+    if e < (n - seq_length - 1):
+        e += seq_length + 1
     else:
         e = 0
+
         rnn.hprev = np.zeros(shape=(m, 1))
-        
+
         epoch_n += 1
-        print ('\n------EPOCH {}--------\n'.format(epoch_n))
-        
+        print('\n------EPOCH {}--------\n'.format(epoch_n))
+
         if epoch_n >= 4:
             break
-            
+
 # # plot results
 # steps = [step * 10 for step in range(len(lossHist))]
 # plt.plot(steps, lossHist, 'r', linewidth=1.5, alpha=1.0, label='Loss')
@@ -119,8 +120,9 @@ for i in range(2000000):
 # plt.show()
 
 # recurrentNet.weights = weights_best
+
 sequence = rnn.synthesizeText(
-    x0=X[0][:1], 
+    x0=X[0][:1],
     n=200
 )
 
