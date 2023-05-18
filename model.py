@@ -445,7 +445,7 @@ class LSTM:
         for x in X:
             
             i_t = sigmoid(self.weights['W_i'] @ hList[-1] + self.weights['U_i'] @ x[:, np.newaxis] + self.weights['b_i'])
-            f_t = sigmoid(self.weights['W_f'] @ hList[-1] + self.weights['U_f'] @ x[:, np.newaxis] + self.weights['b_f'])
+            f_t = sigmoid(self.weights['W_f'] @ hList[-1] + self.weights['U_f   '] @ x[:, np.newaxis] + self.weights['b_f'])
             e_t = sigmoid(self.weights['W_e'] @ hList[-1] + self.weights['U_e'] @ x[:, np.newaxis] + self.weights['b_e'])
             c_old = np.tanh(self.weights['W_c'] @ hList[-1] + self.weights['U_c'] @ x[:, np.newaxis] + self.weights['b_c'])
             c_new = f_t * cNewList[-1] + i_t * c_old
