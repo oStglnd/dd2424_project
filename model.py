@@ -668,7 +668,9 @@ class LSTM_2L(RNN):
     def evaluate(
             self, 
             X: np.array,
-            train: bool
+            train: bool,
+            temperature = 1.0 # (0 , 1] : Changes variance in p distribution, lower -> lower variance
+
         ) -> np.array:
 
         _, H = self.lstm1.evaluate(X,train=False)
