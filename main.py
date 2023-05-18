@@ -74,7 +74,7 @@ def main():
     )
 
 
-    num_iterations = 100
+    num_iterations = 1000
     rnn, lossHist = runTraining(rnn, X, num_iterations)
     plotLoss(lossHist)
     printSequence(rnn, X)

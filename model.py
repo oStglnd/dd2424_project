@@ -119,8 +119,8 @@ class RNN:
             n: int
         ) -> list:
         
-        THRESHOLD = 0.8 # (0, 1) - sample from top x-number of tokens that make up THRESHOLD probability mass
-        TEMPERATURE = 0.5 # (0, 1) - Adjust variance of probability distribution in softmax
+        THRESHOLD = 0.95 # (0, 1) - sample from top x-number of tokens that make up THRESHOLD probability mass
+        TEMPERATURE = 0.8 # (0, 1) - Adjust variance of probability distribution in softmax
         xList = [x0]
         for _ in range(n):
             p = self.evaluate(xList[-1], train=False, temperature=TEMPERATURE)
