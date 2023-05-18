@@ -1,0 +1,5 @@
+Text generation for model type LSTM at time: 18/05/2023 19:39:41
+Num_iterations: 1000, current_loss: 70.28144135089256
+Generated text: 
+ 
+Fe es:ner singeldine:irerefbenhy tivinsengrtaererinendenngeassake unkefaversenen, m, givren: erencenkess!.a shereing gdinherurererVeliunnthipontuceintheenfichesust alseistingrenerpisedese hinrt fiemchelielend'cavunenandshaknchereWinssserileonisinoleere;-rreytwelerindingerse aefeneyo, he, tfereanony hinan. mcerelecietusesellen, an blrernorryene kehelineiericsenenhererton orief ocin ke n theins as he
