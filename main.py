@@ -66,7 +66,7 @@ def main():
     TODO: 
     Create LSTM_2L (2-layer LSTM)
     """
-    rnn = LSTM_2L(
+    rnn = VanillaRNN(
         K=K,
         m=m,
         sigma=sigma,
@@ -74,7 +74,7 @@ def main():
     )
 
 
-    num_iterations = 10000
+    num_iterations = 100
     rnn, lossHist = runTraining(rnn, X, num_iterations)
     plotLoss(lossHist)
     printSequence(rnn, X)
