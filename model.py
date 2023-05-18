@@ -121,17 +121,32 @@ class RNN:
             n: int
         ) -> list:
         
+        THRESHOLD = 0.95 # (0, 1) - sample from top x-number of tokens that make up THRESHOLD probability mass
+        TEMPERATURE = 0.8 # (0, 1) - Adjust variance of probability distribution in softmax
         xList = [x0]
         for _ in range(n):
-            p = self.evaluate(xList[-1], train=False)
-            
-            pList = [(prob, idx) for idx, prob in enumerate(p)]
-            pList.sort()
+            p = self.evaluate(xList[-1], train=False, temperature=TEMPERATURE)
 
-            idxNext = np.random.choice(
-                a=range(self.K), 
-                p=np.squeeze(p)
-            )
+            # nucleus sampling START
+            p_tuples = list(enumerate(p))
+            p_tuples.sort(key=lambda x:x[1][0], reverse=True)
+            prob_mass = 0.0
+            i = 0
+            while prob_mass < THRESHOLD:
+                prob_mass += p_tuples[i][1]
+                i += 1
+
+            id, probabilities = zip(*p_tuples[0:i])  # gets top i number of tokens that make up 95% prob-distr.
+            probabilities /= prob_mass        # normalize
+            idxNext = np.random.choice(id, p=np.squeeze(probabilities))
+            # nucleus samping END
+
+            ## Random sample distribution START
+            # idxNext = np.random.choice(
+            #     a=range(self.K), 
+            #     p=np.squeeze(p)
+            # )
+            ## Random sample distribution END
             
             x = np.zeros(shape=(1, self.K))
             x[0, idxNext] = 1
@@ -286,7 +301,8 @@ class VanillaRNN(RNN):
     def evaluate(
             self, 
             X: np.array,
-            train: bool
+            train: bool,
+            temperature = 1.0 # (0 , 1] : Changes variance in p distribution, lower -> lower variance
         ) -> np.array:
         """
         Parameters
@@ -307,7 +323,7 @@ class VanillaRNN(RNN):
             a = self.weights['W'] @ hList[-1] + self.weights['U'] @ x[:, np.newaxis] + self.weights['b']
             h = np.tanh(a)
             o = self.weights['V'] @ h + self.weights['c']
-            p = softMax(o)
+            p = softMax(o, temperature)
             
             # save vals
             aList.append(a)
@@ -445,7 +461,8 @@ class LSTM(RNN):
     def evaluate(
             self, 
             X: np.array,
-            train: bool
+            train: bool,
+            temperature = 1.0 # (0 , 1] : Changes variance in p distribution, lower -> lower variance
         ) -> np.array:
         """
         Parameters
@@ -474,7 +491,7 @@ class LSTM(RNN):
             c_new = f_t * cNewList[-1] + i_t * c_old
             h_t = e_t * np.tanh(c_new)
             o_t = self.weights['V'] @ h_t + self.weights['c']
-            p_t = softMax(o_t)
+            p_t = softMax(o_t, temperature)
             
             # save vals
             iList.append(i_t)

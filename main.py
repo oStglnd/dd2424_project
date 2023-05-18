@@ -80,6 +80,7 @@ def main():
         seed=2
     )
 
+
     lstm_2l = LSTM_2L(
         K=K,
         m=m,
@@ -100,7 +101,6 @@ def main():
     lstm_2l, lossHist = runTraining(lstm_2l, X, num_iterations)
     generateAndLogSequence(lstm_2l, X, num_iterations, lossHist[-1])
     plotLoss(lstm_2l, lossHist, num_iterations)
-    
 
 
 # =====================================================
