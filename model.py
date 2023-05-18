@@ -62,6 +62,8 @@ class RNN:
             sigma: float,
             seed: int
         ):
+
+        self.type = self.__class__.__name__
         
         # init seed
         np.random.seed(seed)
@@ -123,6 +125,9 @@ class RNN:
         for _ in range(n):
             p = self.evaluate(xList[-1], train=False)
             
+            pList = [(prob, idx) for idx, prob in enumerate(p)]
+            pList.sort()
+
             idxNext = np.random.choice(
                 a=range(self.K), 
                 p=np.squeeze(p)
