@@ -62,6 +62,8 @@ class RNN:
             sigma: float,
             seed: int
         ):
+
+        self.type = self.__class__.__name__
         
         # init seed
         np.random.seed(seed)
