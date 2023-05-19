@@ -289,7 +289,7 @@ class VanillaRNN(RNN):
             a = self.weights['W'] @ hList[-1] + self.weights['U'] @ x[:, np.newaxis] + self.weights['b']
             h = np.tanh(a)
             o = self.weights['V'] @ h + self.weights['c']
-            p = softMax(o, temperature)
+            p = softMax(o)
             
             # save vals
             aList.append(a)
@@ -464,8 +464,7 @@ class LSTM(RNN):
     def evaluate(
             self, 
             X: np.array,
-            train: bool,
-            temperature = 1.0 # (0 , 1] : Changes variance in p distribution, lower -> lower variance
+            train: bool
         ) -> np.array:
         """
         Parameters
@@ -494,7 +493,7 @@ class LSTM(RNN):
             c_new = f_t * cNewList[-1] + i_t * c_old
             h_t = e_t * np.tanh(c_new)
             o_t = self.weights['V'] @ h_t + self.weights['c']
-            p_t = softMax(o_t, temperature)
+            p_t = softMax(o_t)
             
             # save vals
             iList.append(i_t)
@@ -714,9 +713,7 @@ class LSTM_2L(RNN):
     def evaluate(
             self, 
             X: np.array,
-            train: bool,
-            temperature = 1.0 # (0 , 1] : Changes variance in p distribution, lower -> lower variance
-
+            train: bool
         ) -> np.array:
 
         _, H = self.lstm1.evaluate(X,train=False)

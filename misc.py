@@ -53,7 +53,7 @@ def sigmoid(S: np.array) -> np.array:
     return 1 / (1 + np.exp(-S))
 
 
-def softMax(S: np.array, temperature: float) -> np.array:
+def softMax(S: np.array, temperature = 1.0) -> np.array:
     """
     Parameters
     ----------
