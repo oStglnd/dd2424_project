@@ -53,16 +53,18 @@ def sigmoid(S: np.array) -> np.array:
     return 1 / (1 + np.exp(-S))
 
 
-def softMax(S: np.array) -> np.array:
+def softMax(S: np.array, temperature: float) -> np.array:
     """
     Parameters
     ----------
     S : dxN score matrix
+    T : Scales variance in output probability distribution
 
     Returns
     -------
     S : dxN score matrix w. applied softmax activation
     """
+    S = S / temperature
     S = np.exp(S)
     return S / np.sum(S, axis=0)
 
