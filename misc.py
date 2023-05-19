@@ -26,6 +26,7 @@ def prepareData(data: object) -> dict:
 
     uniqueChars = set(data)
     keyToChar = dict(enumerate(uniqueChars))
+    # keyToChar = dict(enumerate(np.unique(data)))
     charToKey = dict([(val, key) for key, val in keyToChar.items()])
 
     return keyToChar, charToKey

@@ -88,7 +88,7 @@ def main():
         seed=2
     )
 
-    num_iterations = 1000
+    num_iterations = 100
 
     vrnn, lossHist = runTraining(vrnn, X, num_iterations)
     generateAndLogSequence(vrnn, X, num_iterations, lossHist[-1])
@@ -98,9 +98,10 @@ def main():
     generateAndLogSequence(lstm, X, num_iterations, lossHist[-1])
     plotLoss(lstm, lossHist, num_iterations)
 
-    lstm_2l, lossHist = runTraining(lstm_2l, X, num_iterations)
-    generateAndLogSequence(lstm_2l, X, num_iterations, lossHist[-1])
-    plotLoss(lstm_2l, lossHist, num_iterations)
+    # lstm_2l, lossHist = runTraining(lstm_2l, X, num_iterations)
+    # generateAndLogSequence(lstm_2l, X, num_iterations, lossHist[-1])
+    # plotLoss(lstm_2l, lossHist, num_iterations)
+
 
 
 # =====================================================
@@ -158,8 +159,8 @@ def runTraining(rnn, X, num_iterations):
             print('\nGenerated sequence \n\n {}\n'.format(sequence))
 
         # update e
-        if e < (n - seq_length - 1):
-            e += seq_length + 1
+        if e < (n - seq_length):
+            e += seq_length
         else:
             e = 0
 
@@ -213,12 +214,13 @@ def printAndReturnSequence(rnn, X):
 
     sequence = rnn.synthesizeText(
             x0=X[0][:1],
-            n=400
+            n=1000
         )
 
     # convert to chars and print sequence
     sequence = ''.join([keyToChar[key] for key in sequence])
     print('\nGenerated sequence \n\t {}\n'.format(sequence))
+
     return sequence
 
 

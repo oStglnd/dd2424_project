@@ -93,6 +93,13 @@ class RNN:
             Y: np.array 
         ):
         raise Exception("'computeGrads' method must be overriden in subclass!")
+    
+    def synthesizeText(
+            self,
+            x0: np.array,
+            n: int
+        ) -> list:
+        raise Exception("'synthesizeText' method must be overriden in subclass!")
 
     def predict(
             self, 
@@ -114,47 +121,7 @@ class RNN:
         )
         
         return preds
-    
-    def synthesizeText(
-            self,
-            x0: np.array,
-            n: int
-        ) -> list:
-        
-        THRESHOLD = 0.95 # (0, 1) - sample from top x-number of tokens that make up THRESHOLD probability mass
-        TEMPERATURE = 0.8 # (0, 1) - Adjust variance of probability distribution in softmax
-        xList = [x0]
-        for _ in range(n):
-            p = self.evaluate(xList[-1], train=False, temperature=TEMPERATURE)
 
-            # nucleus sampling START
-            p_tuples = list(enumerate(p))
-            p_tuples.sort(key=lambda x:x[1][0], reverse=True)
-            prob_mass = 0.0
-            i = 0
-            while prob_mass < THRESHOLD:
-                prob_mass += p_tuples[i][1]
-                i += 1
-
-            id, probabilities = zip(*p_tuples[0:i])  # gets top i number of tokens that make up 95% prob-distr.
-            probabilities /= prob_mass        # normalize
-            idxNext = np.random.choice(id, p=np.squeeze(probabilities))
-            # nucleus samping END
-
-            ## Random sample distribution START
-            # idxNext = np.random.choice(
-            #     a=range(self.K), 
-            #     p=np.squeeze(p)
-            # )
-            ## Random sample distribution END
-            
-            x = np.zeros(shape=(1, self.K))
-            x[0, idxNext] = 1
-            xList.append(x)
-        
-        xList = [np.argmax(x) for x in xList]
-        return xList
-    
     
     def computeLoss(
             self, 
@@ -176,7 +143,7 @@ class RNN:
         P = self.evaluate(X, train=False)
         
         # evaluate loss term
-        l = - np.mean(Y.T * np.log(P))
+        l = - np.sum(Y.T * np.log(P))
         
         return l
 
@@ -301,8 +268,7 @@ class VanillaRNN(RNN):
     def evaluate(
             self, 
             X: np.array,
-            train: bool,
-            temperature = 1.0 # (0 , 1] : Changes variance in p distribution, lower -> lower variance
+            train: bool
         ) -> np.array:
         """
         Parameters
@@ -404,6 +370,43 @@ class VanillaRNN(RNN):
         }
         
         return grads
+    
+    def synthesizeText(
+            self,
+            x0: np.array,
+            n: int
+        ) -> list:
+       
+        h = self.hprev
+        xList = [x0]
+        THRESHOLD = 0.95 # (0, 1) - sample from top x-number of tokens that make up THRESHOLD probability mass
+        TEMPERATURE = 0.8 # (0, 1) - Adjust variance of probability distribution in softmax
+        
+        for _ in range(n):
+            a = self.weights['W'] @ h + self.weights['U'] @ xList[-1].T + self.weights['b']
+            h = np.tanh(a)
+            o = self.weights['V'] @ h + self.weights['c']
+            p = softMax(o, TEMPERATURE)
+            
+             # nucleus sampling START
+            p_tuples = list(enumerate(p))
+            p_tuples.sort(key=lambda x:x[1][0], reverse=True)
+            prob_mass = 0.0
+            i = 0
+            while prob_mass < THRESHOLD:
+                prob_mass += p_tuples[i][1]
+                i += 1
+
+            id, probabilities = zip(*p_tuples[0:i])  # gets top i number of tokens that make up 95% prob-distr.
+            probabilities /= prob_mass        # normalize
+            idxNext = np.random.choice(id, p=np.squeeze(probabilities))
+            
+            x = np.zeros(shape=(1, self.K))
+            x[0, idxNext] = 1
+            xList.append(x)
+        
+        xList = [np.argmax(x) for x in xList]
+        return xList
     
 
 # =====================================================
@@ -512,15 +515,16 @@ class LSTM(RNN):
         H = np.hstack(hList)
         
         # update hprev
-        if train:
+        if train: 
             self.hprev = H[:, -1][:, np.newaxis]
             self.cprev = CNEW[:, -1][:, np.newaxis]
+
+        if train:
             return P, I, F, E, COLD, CNEW, H
+        elif self.LSTMSubLayer:
+            return P, H
         else:
-            if self.LSTMSubLayer:
-                return P, H
-            else:
-                return P
+            return P
 
     # LSTM Backward Pass
     def computeGrads(
@@ -642,6 +646,48 @@ class LSTM(RNN):
         
         return grads
 
+    def synthesizeText(
+            self,
+            x0: np.array,
+            n: int
+        ) -> list:
+        
+        h = self.hprev
+        c = self.cprev
+
+        xList = [x0]
+        THRESHOLD = 0.95 # (0, 1) - sample from top x-number of tokens that make up THRESHOLD probability mass
+        TEMPERATURE = 0.8 # (0, 1) - Adjust variance of probability distribution in softmax
+        
+        for _ in range(n):
+            i = sigmoid(self.weights['W_i'] @ h + self.weights['U_i'] @ xList[-1].T + self.weights['b_i'])
+            f = sigmoid(self.weights['W_f'] @ h + self.weights['U_f'] @ xList[-1].T + self.weights['b_f'])
+            e = sigmoid(self.weights['W_e'] @ h + self.weights['U_e'] @ xList[-1].T + self.weights['b_e'])
+            c_old = np.tanh(self.weights['W_c'] @ h + self.weights['U_c'] @ xList[-1].T + self.weights['b_c'])
+            c = f * c + i * c_old
+            h = e * np.tanh(c)
+            o = self.weights['V'] @ h + self.weights['c']
+            p = softMax(o, TEMPERATURE)
+            
+             # nucleus sampling START
+            p_tuples = list(enumerate(p))
+            p_tuples.sort(key=lambda x:x[1][0], reverse=True)
+            prob_mass = 0.0
+            i = 0
+            while prob_mass < THRESHOLD:
+                prob_mass += p_tuples[i][1]
+                i += 1
+
+            id, probabilities = zip(*p_tuples[0:i])  # gets top i number of tokens that make up 95% prob-distr.
+            probabilities /= prob_mass        # normalize
+            idxNext = np.random.choice(id, p=np.squeeze(probabilities))
+            
+            x = np.zeros(shape=(1, self.K))
+            x[0, idxNext] = 1
+            xList.append(x)
+        
+        xList = [np.argmax(x) for x in xList]
+        return xList
 
 # =====================================================
 # ------------------ 2-layer LSTM ---------------------
