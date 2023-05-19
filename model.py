@@ -374,32 +374,32 @@ class VanillaRNN(RNN):
     def synthesizeText(
             self,
             x0: np.array,
-            n: int
+            n: int,
+            threshold = 1.0, # (0, 1) - sample from top x-number of tokens that make up THRESHOLD probability mass
+            temperature = 1.0 # (0, 1) - Adjust variance of probability distribution in softmax
         ) -> list:
        
         h = self.hprev
         xList = [x0]
-        THRESHOLD = 0.95 # (0, 1) - sample from top x-number of tokens that make up THRESHOLD probability mass
-        TEMPERATURE = 0.8 # (0, 1) - Adjust variance of probability distribution in softmax
-        
+  
         for _ in range(n):
             a = self.weights['W'] @ h + self.weights['U'] @ xList[-1].T + self.weights['b']
             h = np.tanh(a)
             o = self.weights['V'] @ h + self.weights['c']
-            p = softMax(o, TEMPERATURE)
+            p = softMax(o, temperature)
             
              # nucleus sampling START
             p_tuples = list(enumerate(p))
-            p_tuples.sort(key=lambda x:x[1][0], reverse=True)
+            p_tuples.sort(key=lambda x:x[1], reverse=True)
             prob_mass = 0.0
             i = 0
-            while prob_mass < THRESHOLD:
+            while prob_mass < (threshold - 10e-4):
                 prob_mass += p_tuples[i][1]
                 i += 1
 
             id, probabilities = zip(*p_tuples[0:i])  # gets top i number of tokens that make up 95% prob-distr.
             probabilities /= prob_mass        # normalize
-            idxNext = np.random.choice(id, p=np.squeeze(probabilities))
+            idxNext = np.random.choice(id, p=np.reshape(probabilities, probabilities.shape[0]))
             
             x = np.zeros(shape=(1, self.K))
             x[0, idxNext] = 1
@@ -648,15 +648,15 @@ class LSTM(RNN):
     def synthesizeText(
             self,
             x0: np.array,
-            n: int
+            n: int,
+            threshold = 1.0, # (0, 1) - sample from top x-number of tokens that make up THRESHOLD probability mass
+            temperature = 1.0 # (0, 1) - Adjust variance of probability distribution in softmax
         ) -> list:
         
         h = self.hprev
         c = self.cprev
 
         xList = [x0]
-        THRESHOLD = 0.95 # (0, 1) - sample from top x-number of tokens that make up THRESHOLD probability mass
-        TEMPERATURE = 0.8 # (0, 1) - Adjust variance of probability distribution in softmax
         
         for _ in range(n):
             i = sigmoid(self.weights['W_i'] @ h + self.weights['U_i'] @ xList[-1].T + self.weights['b_i'])
@@ -666,20 +666,20 @@ class LSTM(RNN):
             c = f * c + i * c_old
             h = e * np.tanh(c)
             o = self.weights['V'] @ h + self.weights['c']
-            p = softMax(o, TEMPERATURE)
+            p = softMax(o, temperature)
             
              # nucleus sampling START
             p_tuples = list(enumerate(p))
-            p_tuples.sort(key=lambda x:x[1][0], reverse=True)
+            p_tuples.sort(key=lambda x:x[1], reverse=True)
             prob_mass = 0.0
             i = 0
-            while prob_mass < THRESHOLD:
+            while prob_mass < (threshold - 10e-4):
                 prob_mass += p_tuples[i][1]
                 i += 1
 
             id, probabilities = zip(*p_tuples[0:i])  # gets top i number of tokens that make up 95% prob-distr.
             probabilities /= prob_mass        # normalize
-            idxNext = np.random.choice(id, p=np.squeeze(probabilities))
+            idxNext = np.random.choice(id, p=np.reshape(probabilities, probabilities.shape[0]))
             
             x = np.zeros(shape=(1, self.K))
             x[0, idxNext] = 1

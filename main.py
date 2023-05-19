@@ -88,7 +88,7 @@ def main():
         seed=2
     )
 
-    num_iterations = 100
+    num_iterations = 1000
 
     vrnn, lossHist = runTraining(vrnn, X, num_iterations)
     generateAndLogSequence(vrnn, X, num_iterations, lossHist[-1])
@@ -150,7 +150,6 @@ def runTraining(rnn, X, num_iterations):
 
             sequence = rnn.synthesizeText(
                 x0=X[e][:1],
-
                 n=250
             )
 
