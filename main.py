@@ -88,19 +88,19 @@ def main():
         seed=2
     )
 
-    num_iterations = 1000
+    num_iterations = 10000
 
-    vrnn, lossHist = runTraining(vrnn, X, num_iterations)
-    generateAndLogSequence(vrnn, X, num_iterations, lossHist[-1])
-    plotLoss(vrnn, lossHist, num_iterations)
+    # vrnn, lossHist = runTraining(vrnn, X, num_iterations)
+    # generateAndLogSequence(vrnn, X, num_iterations, lossHist[-1])
+    # plotLoss(vrnn, lossHist, num_iterations)
 
-    lstm, lossHist = runTraining(lstm, X, num_iterations)
-    generateAndLogSequence(lstm, X, num_iterations, lossHist[-1])
-    plotLoss(lstm, lossHist, num_iterations)
+    # lstm, lossHist = runTraining(lstm, X, num_iterations)
+    # generateAndLogSequence(lstm, X, num_iterations, lossHist[-1])
+    # plotLoss(lstm, lossHist, num_iterations)
 
-    # lstm_2l, lossHist = runTraining(lstm_2l, X, num_iterations)
-    # generateAndLogSequence(lstm_2l, X, num_iterations, lossHist[-1])
-    # plotLoss(lstm_2l, lossHist, num_iterations)
+    lstm_2l, lossHist = runTraining(lstm_2l, X, num_iterations)
+    generateAndLogSequence(lstm_2l, X, num_iterations, lossHist[-1])
+    plotLoss(lstm_2l, lossHist, num_iterations)
 
 
 

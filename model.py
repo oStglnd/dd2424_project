@@ -175,6 +175,7 @@ class RNN:
             w_perturb = np.zeros(shape)
             w_gradsNum = np.zeros(shape)
             w_0 = weight.copy()
+            print("Currently treated: " + name)
             
             for i in range(self.K):
                 for j in range(min(shape[1], self.K)):
@@ -421,7 +422,8 @@ class LSTM(RNN):
             m: list,
             sigma: float,
             seed: int,
-            LSTMSubLayer = False, # Is this LSTM the first layer of a 2-layer LSTM?
+            LSTMSubLower = False, # Is this LSTM the first layer of a 2-layer LSTM?
+            LSTMSubUpper = False, # If true, model is part of K-layer LSTM as the final layer
             K_out = 0
         ):
 
@@ -446,9 +448,10 @@ class LSTM(RNN):
             self.weights[weights[0]] = np.random.randn(self.m, self.m) * sigma
             self.weights[weights[1]] = np.random.randn(self.m, self.K) * sigma
             self.weights[weights[2]] = np.zeros(shape=(self.m, 1))
-        
-        self.weights['V'] = np.random.randn(self.K_out, self.m) * sigma
-        self.weights['c'] = np.zeros(shape=(self.K_out, 1))
+
+        if not LSTMSubLower:
+            self.weights['V'] = np.random.randn(self.K_out, self.m) * sigma
+            self.weights['c'] = np.zeros(shape=(self.K_out, 1))
         
         for key, weight in self.weights.items():
             self.momentum[key] = np.zeros(shape=weight.shape)
@@ -456,9 +459,9 @@ class LSTM(RNN):
         # initialize cprev
         self.cprev = np.zeros(shape=(self.m, 1))
 
-        # Mark this LSTM as part of a 2-layer LSTM (first layer) or not
-        self.LSTMSubLayer = LSTMSubLayer
-        
+        # Mark this LSTM as part of a 2-layer LSTM or not
+        self.LSTMSubLower = LSTMSubLower
+        self.LSTMSubUpper = LSTMSubUpper
 
     # LSTM Forward Pass
     def evaluate(
@@ -520,10 +523,59 @@ class LSTM(RNN):
 
         if train:
             return P, I, F, E, COLD, CNEW, H
-        elif self.LSTMSubLayer:
-            return P, H
         else:
             return P
+        
+    def evaluateSubLower(
+            self, 
+            X: np.array,
+            train: bool
+        ) -> np.array:
+
+   
+        hList = [self.hprev.copy()]
+        iList = []
+        fList = []
+        eList = []
+        cOldList = []
+        cNewList = [self.cprev.copy()]
+        
+        # iterate through recurrent block
+        for x in X:
+            
+            i_t = sigmoid(self.weights['W_i'] @ hList[-1] + self.weights['U_i'] @ x[:, np.newaxis] + self.weights['b_i'])
+            f_t = sigmoid(self.weights['W_f'] @ hList[-1] + self.weights['U_f'] @ x[:, np.newaxis] + self.weights['b_f'])
+            e_t = sigmoid(self.weights['W_e'] @ hList[-1] + self.weights['U_e'] @ x[:, np.newaxis] + self.weights['b_e'])
+            c_old = np.tanh(self.weights['W_c'] @ hList[-1] + self.weights['U_c'] @ x[:, np.newaxis] + self.weights['b_c'])
+            c_new = f_t * cNewList[-1] + i_t * c_old
+            h_t = e_t * np.tanh(c_new)
+ 
+            
+            # save vals
+            iList.append(i_t)
+            fList.append(f_t)
+            eList.append(e_t)
+            cOldList.append(c_old)
+            cNewList.append(c_new)
+            hList.append(h_t)
+
+
+        I = np.hstack(iList)
+        F = np.hstack(fList)
+        E = np.hstack(eList)
+        COLD = np.hstack(cOldList)
+        CNEW = np.hstack(cNewList)   
+        H = np.hstack(hList)
+        
+        # update hprev
+        if train: 
+            self.hprev = H[:, -1][:, np.newaxis]
+            self.cprev = CNEW[:, -1][:, np.newaxis]
+
+        if train:
+            return I, F, E, COLD, CNEW, H
+        else:
+            return H
 
     # LSTM Backward Pass
     def computeGrads(
@@ -565,6 +617,14 @@ class LSTM(RNN):
         f_grads = [f_grad]
         e_grads = [e_grad]
         cOld_grads = [cOld_grad]
+
+        # If lSTM is the upper part of a 2-layer LSTM, track X gradients for backpass
+        if self.LSTMSubUpper: 
+            x_grad = i_grad @ self.weights['U_i']
+            x_grad += f_grad @ self.weights['U_f']
+            x_grad += e_grad @ self.weights['U_e']
+            x_grad += cOld_grad @ self.weights['U_c']
+            x_grads = [x_grad]
         
         iterObj = list(zip(
             g.T[:-1],
@@ -585,6 +645,12 @@ class LSTM(RNN):
             h_grad += f_grad @ self.weights['W_f']
             h_grad += e_grad @ self.weights['W_e']
             h_grad += cOld_grad @ self.weights['W_c']
+
+            if self.LSTMSubUpper: 
+                x_grad = i_grad @ self.weights['U_i']
+                x_grad += f_grad @ self.weights['U_f']
+                x_grad += e_grad @ self.weights['U_e']
+                x_grad += cOld_grad @ self.weights['U_c']
             
             c_grad = c_grad * f_prev + h_grad * e * (1 - np.square(np.tanh(c_new)))
             
@@ -600,6 +666,132 @@ class LSTM(RNN):
             f_grads.append(f_grad)
             e_grads.append(e_grad)
             cOld_grads.append(cOld_grad)
+
+            if self.LSTMSubUpper: 
+                x_grads.append(x_grad)
+        
+        # create grads by vertical stack
+        h_grads = np.vstack(h_grads[::-1]).T
+        i_grads = np.vstack(i_grads[::-1]).T
+        f_grads = np.vstack(f_grads[::-1]).T
+        e_grads = np.vstack(e_grads[::-1]).T
+        cOld_grads = np.vstack(cOld_grads[::-1]).T
+
+        if self.LSTMSubUpper: 
+            x_grads = np.vstack(x_grads[::-1]).T
+        
+        # compute W and U grads
+        Wi_grads = i_grads @ H.T[:-1]
+        Ui_grads = i_grads @ X
+        bi_grads = np.sum(i_grads, axis=1)[:, np.newaxis]
+        
+        Wf_grads = f_grads @ H.T[:-1]
+        Uf_grads = f_grads @ X
+        bf_grads = np.sum(f_grads, axis=1)[:, np.newaxis]
+        
+        We_grads = e_grads @ H.T[:-1]
+        Ue_grads = e_grads @ X
+        be_grads = np.sum(e_grads, axis=1)[:, np.newaxis]
+        
+        Wc_grads = cOld_grads @ H.T[:-1]
+        Uc_grads = cOld_grads @ X
+        bc_grads = np.sum(cOld_grads, axis=1)[:, np.newaxis]
+        
+        # save grads in dict
+        grads = {
+            'W_i': Wi_grads,
+            'U_i': Ui_grads,
+            'b_i': bi_grads,
+            'W_f': Wf_grads,
+            'U_f': Uf_grads,
+            'b_f': bf_grads,
+            'W_e': We_grads,
+            'U_e': Ue_grads,
+            'b_e': be_grads,
+            'W_c': Wc_grads,
+            'U_c': Uc_grads,
+            'b_c': bc_grads,
+            'V':V_grads,
+            'c':Vc_grads
+            }
+        if self.LSTMSubUpper: 
+            return grads, x_grads
+        else: 
+            return grads
+    
+    # Special backpass function for lower layer of a 2 layer LSTM 
+    def computeGradsSubLower(
+            self, 
+            X: np.array, 
+            X_l2_grads: np.array, 
+        ) -> (np.array, np.array):
+        """
+        Parameters
+        ----------
+        X : Nxd data matrix
+        Y : NxK one-hot encoded label matrix
+        
+        Returns
+        -------
+        W_grads : gradients for weight martix (W)
+        b_grads : gradients for bias matrix (b)
+        """
+        I, F, E, COLD, CNEW, H = self.evaluateSubLower(X=X, train=True)
+        
+        
+        # compute grads for h and gates/activations
+        h_grad = X_l2_grads.T[-1]
+
+        c_grad = h_grad * E.T[-1] * (1 - np.square(np.tanh(CNEW.T[-1])))
+        
+        i_grad = c_grad * COLD.T[-1] * I.T[-1] * (1 - I.T[-1])
+        f_grad = c_grad * CNEW.T[-2] * F.T[-1] * (1 - F.T[-1])
+        cOld_grad = c_grad * I.T[-1] * (1 - np.square(COLD.T[-1]))
+        e_grad = h_grad * np.tanh(CNEW.T[-1]) * E.T[-1] * (1 - E.T[-1])
+        
+        # init lists
+        h_grads = [h_grad]
+        c_grads = [c_grad]
+        i_grads = [i_grad]
+        f_grads = [f_grad]
+        e_grads = [e_grad]
+        cOld_grads = [cOld_grad]
+       
+        iterObj = list(zip(
+            X_l2_grads.T[:-1],
+            I.T[:-1],
+            F.T[:-1],
+            F.T[1:],
+            E.T[:-1],
+            COLD.T[:-1],
+            CNEW.T[1:-1],
+            CNEW.T[:-2]
+        ))
+
+        # iteratively compute grads
+        for x_l2_grad, i, f, f_prev, e, c_old, c_new, c_newPrev in reversed(iterObj):
+            
+            h_grad = x_l2_grad
+            h_grad += i_grad @ self.weights['W_i']
+            h_grad += f_grad @ self.weights['W_f']
+            h_grad += e_grad @ self.weights['W_e']
+            h_grad += cOld_grad @ self.weights['W_c']
+            
+            c_grad = c_grad * f_prev + h_grad * e * (1 - np.square(np.tanh(c_new)))
+            
+            i_grad = c_grad * c_old * i * (1 - i)
+            f_grad = c_grad * c_newPrev * f * (1 - f)
+            cOld_grad = c_grad * i * (1 - np.square(c_old))
+            e_grad = h_grad * np.tanh(c_new) * e * (1 - e)
+        
+            # store grads f. stacking
+            h_grads.append(h_grad)
+            c_grads.append(c_grad)
+            i_grads.append(i_grad)
+            f_grads.append(f_grad)
+            e_grads.append(e_grad)
+            cOld_grads.append(cOld_grad)
+
         
         # create grads by vertical stack
         h_grads = np.vstack(h_grads[::-1]).T
@@ -638,11 +830,10 @@ class LSTM(RNN):
             'b_e': be_grads,
             'W_c': Wc_grads,
             'U_c': Uc_grads,
-            'b_c': bc_grads,
-            'V':V_grads,
-            'c':Vc_grads
+            'b_c': bc_grads
             }
         
+            
         return grads
 
     def synthesizeText(
@@ -704,8 +895,8 @@ class LSTM_2L(RNN):
     
         super().__init__(K,m,sigma,seed)
         
-        self.lstm1 = LSTM(K, m, sigma, seed, LSTMSubLayer=True) 
-        self.lstm2 = LSTM(m, m, sigma, seed, LSTMSubLayer=False, K_out = K) 
+        self.lstm1 = LSTM(K, m, sigma, seed, LSTMSubLower = True) 
+        self.lstm2 = LSTM(m, m, sigma, seed, LSTMSubUpper = True, K_out = K) 
 
         self.weights = [self.lstm1.weights, self.lstm2.weights]
     
@@ -716,11 +907,24 @@ class LSTM_2L(RNN):
             train: bool
         ) -> np.array:
 
-        _, H = self.lstm1.evaluate(X,train=False)
+        H = self.lstm1.evaluateSubLower(X,train=False)
         P = self.lstm2.evaluate(H.T[1:],train=False)
 
         return P
 
+    def computeGrads(
+            self, 
+            X: np.array, 
+            Y: np.array
+        ) -> (np.array, np.array):
+            
+            H = self.lstm1.evaluateSubLower(X,train=False)
+
+            gradsl2, X_l2_grads = self.lstm2.computeGrads(H.T[1:], Y)
+            gradsl1 = self.lstm1.computeGradsSubLower(X, X_l2_grads)
+
+            grads = [gradsl1, gradsl2]
+            return grads
 
     def train(
             self, 
@@ -737,9 +941,12 @@ class LSTM_2L(RNN):
         """
         # get grads from self.computeGrads and update weights
         # w. GD and learning parameter eta
-        _, H = self.lstm1.evaluate(X,train=False)
+        H = self.lstm1.evaluateSubLower(X,train=False)
 
-        grads = [self.lstm1.computeGrads(X, Y), self.lstm2.computeGrads(H.T[1:], Y)]
+        gradsl2, X_l2_grads = self.lstm2.computeGrads(H.T[1:], Y)
+        gradsl1 = self.lstm1.computeGradsSubLower(X, X_l2_grads)
+
+        grads = [gradsl1, gradsl2]
 
         lstms = [self.lstm1, self.lstm2]
 
@@ -755,3 +962,111 @@ class LSTM_2L(RNN):
                 # update weight
                 weight -= eta * grads[idx][key] / np.sqrt(lstm.momentum[key] + 1e-12)
 
+
+    def computeGradsNumerical(
+            self, 
+            X: np.array, 
+            Y: np.array,
+            eps: float,
+        ) -> np.array:
+
+
+        # save initial weights
+        grads = []
+        for idx, lstm in enumerate([self.lstm1, self.lstm2]):
+            grads.append({})
+            for name, weight in lstm.weights.items():
+                shape = weight.shape
+                w_perturb = np.zeros(shape)
+                w_gradsNum = np.zeros(shape)
+                w_0 = weight.copy()
+                print("Currently treated: " + name)
+                
+                for i in range(self.K):
+                    for j in range(min(shape[1], self.K)):
+                # for i in range(shape[0]):
+                #     for j in range(shape[1]):
+                
+                        # add perturbation
+                        w_perturb[i, j] = eps
+                        
+                        # perturb weight vector negatively
+                        # and compute cost
+                        w_tmp = w_0 - w_perturb
+                        lstm.weights[name] = w_tmp
+                        loss1 = self.computeLoss(X, Y)
+                    
+                        # perturb weight vector positively
+                        # and compute cost
+                        w_tmp = w_0 + w_perturb
+                        lstm.weights[name] = w_tmp
+                        loss2 = self.computeLoss(X, Y)
+                        lossDiff = (loss2 - loss1) / (2 * eps)
+                        
+                        # get numerical grad f. W[i, j]
+                        w_gradsNum[i, j] = lossDiff
+                        w_perturb[i, j] = 0
+            
+                # save grads
+                print(w_gradsNum)
+                grads[idx][name] = w_gradsNum
+                
+                # reset weigth vector
+                lstm.weights[name] = w_0
+            
+        return grads
+    
+    def synthesizeText(
+            self,
+            x0: np.array,
+            n: int,
+            threshold = 1.0, # (0, 1) - sample from top x-number of tokens that make up THRESHOLD probability mass
+            temperature = 1.0 # (0, 1) - Adjust variance of probability distribution in softmax
+        ) -> list:
+        
+        h1 = self.lstm1.hprev
+        c1 = self.lstm1.cprev
+
+        h2 = self.lstm2.hprev
+        c2 = self.lstm2.cprev
+
+        xList = [x0]
+        
+        for _ in range(n):
+            i1 = sigmoid(self.lstm1.weights['W_i'] @ h1 + self.lstm1.weights['U_i'] @ xList[-1].T + self.lstm1.weights['b_i'])
+            f1 = sigmoid(self.lstm1.weights['W_f'] @ h1 + self.lstm1.weights['U_f'] @ xList[-1].T + self.lstm1.weights['b_f'])
+            e1 = sigmoid(self.lstm1.weights['W_e'] @ h1 + self.lstm1.weights['U_e'] @ xList[-1].T + self.lstm1.weights['b_e'])
+            c_old1 = np.tanh(self.lstm1.weights['W_c'] @ h1 + self.lstm1.weights['U_c'] @ xList[-1].T + self.lstm1.weights['b_c'])
+            c1 = f1 * c1 + i1 * c_old1
+            h1 = e1 * np.tanh(c1)
+
+            i2 = sigmoid(self.lstm2.weights['W_i'] @ h2 + self.lstm2.weights['U_i'] @ h1 + self.lstm2.weights['b_i'])
+            f2 = sigmoid(self.lstm2.weights['W_f'] @ h2 + self.lstm2.weights['U_f'] @ h1 + self.lstm2.weights['b_f'])
+            e2 = sigmoid(self.lstm2.weights['W_e'] @ h2 + self.lstm2.weights['U_e'] @ h1 + self.lstm2.weights['b_e'])
+            c_old2 = np.tanh(self.lstm2.weights['W_c'] @ h2 + self.lstm2.weights['U_c'] @ h1 + self.lstm2.weights['b_c'])
+            c2 = f2 * c2 + i2 * c_old2
+            h2 = e2 * np.tanh(c2)
+            
+            o = self.lstm2.weights['V'] @ h2 + self.lstm2.weights['c']
+            p = softMax(o, temperature)
+            
+             # nucleus sampling START
+            p_tuples = list(enumerate(p))
+            p_tuples.sort(key=lambda x:x[1], reverse=True)
+            prob_mass = 0.0
+            i = 0
+            while prob_mass < (threshold - 10e-4):
+                prob_mass += p_tuples[i][1]
+                i += 1
+
+            id, probabilities = zip(*p_tuples[0:i])  # gets top i number of tokens that make up 95% prob-distr.
+            probabilities /= prob_mass        # normalize
+            idxNext = np.random.choice(id, p=np.reshape(probabilities, probabilities.shape[0]))
+            
+            x = np.zeros(shape=(1, self.K))
+            x[0, idxNext] = 1
+            xList.append(x)
+        
+        xList = [np.argmax(x) for x in xList]
+        return xList
+    
