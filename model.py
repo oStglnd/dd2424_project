@@ -2,7 +2,7 @@
 
 import numpy as np
 from misc import softMax, sigmoid
-
+import sys
 class AdamOpt:
     def __init__(
             self,
@@ -71,6 +71,8 @@ class RNN:
         # init weight dims
         self.K = K
         self.m = m
+        
+        self.sigma = sigma
         
         # init weight dict
         self.weights = {}
@@ -646,11 +648,6 @@ class LSTM(RNN):
             h_grad += e_grad @ self.weights['W_e']
             h_grad += cOld_grad @ self.weights['W_c']
 
-            if self.LSTMSubUpper: 
-                x_grad = i_grad @ self.weights['U_i']
-                x_grad += f_grad @ self.weights['U_f']
-                x_grad += e_grad @ self.weights['U_e']
-                x_grad += cOld_grad @ self.weights['U_c']
             
             c_grad = c_grad * f_prev + h_grad * e * (1 - np.square(np.tanh(c_new)))
             
@@ -658,6 +655,12 @@ class LSTM(RNN):
             f_grad = c_grad * c_newPrev * f * (1 - f)
             cOld_grad = c_grad * i * (1 - np.square(c_old))
             e_grad = h_grad * np.tanh(c_new) * e * (1 - e)
+
+            if self.LSTMSubUpper: 
+                x_grad = i_grad @ self.weights['U_i']
+                x_grad += f_grad @ self.weights['U_f']
+                x_grad += e_grad @ self.weights['U_e']
+                x_grad += cOld_grad @ self.weights['U_c']
         
             # store grads f. stacking
             h_grads.append(h_grad)
@@ -1008,7 +1011,6 @@ class LSTM_2L(RNN):
                         w_perturb[i, j] = 0
             
                 # save grads
-                print(w_gradsNum)
                 grads[idx][name] = w_gradsNum
                 
                 # reset weigth vector

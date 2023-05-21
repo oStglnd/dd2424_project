@@ -37,8 +37,8 @@ charToKey = dict([(val, key) for key, val in keyToChar.items()])
 # define params
 K  = len(keyToChar)
 m = 100
-sigma = 0.01
-seq_length = 5
+sigma = 0.1
+seq_length = 2
 
 # define X, and Y, w. one-hot encoded representations
 data = oneHotEncode(np.array([charToKey[char] for char in data]))
@@ -57,7 +57,7 @@ rnn = LSTM_2L(
 gradsListNum = rnn.computeGradsNumerical(
     X[1], 
     X[2],
-    eps=1e-5
+    eps=1e-4
 )
 
 gradsList = rnn.computeGrads(
@@ -71,14 +71,21 @@ if rnn.type == "LSTM_2L":
     for idx, subgradList in enumerate(gradsList):
         print("Checking gradient layer: " + str(idx+1) + ":")
         for key, grads in subgradList.items():
-            W_gradDiffMax = np.max(np.abs(grads[:50, :50] - gradsListNum[idx][key][:50, :50]))
-            print('\t max|{} - {}_num| = {:.10f}'.format(key, key, W_gradDiffMax))
-else:
+            print(np.min(np.abs(grads[:50, :50])))
+            gradDiff = np.abs(grads[:50, :50]-gradsListNum[idx][key][:50, :50])
+            gradDenom = np.maximum(1e-9, np.abs(grads[:50, :50])+np.abs(gradsListNum[idx][key][:50, :50]))
+            W_gradDiffMax = np.max(gradDiff/gradDenom)
+            print('\t max|{} - {}_num| = {:.10f}'.format(key, key, W_gradDiffMax))          
+
+else: 
     for key, grads in gradsList.items():
-        W_gradDiffMax = np.max(np.abs(grads[:50, :50] - gradsListNum[key][:50, :50]))
+        print(np.min(np.abs(grads[:50, :50])))
+        gradDiff = np.abs(grads[:50, :50]-gradsListNum[key][:50, :50])
+        gradDenom = np.maximum(1e-9, np.abs(grads[:50, :50])+np.abs(gradsListNum[key][:50, :50]))
+        W_gradDiffMax = np.max(gradDiff/gradDenom)
         print('\t max|{} - {}_num| = {:.10f}'.format(key, key, W_gradDiffMax))
-    
-    
+
+
 # lossHist = []
 # smooth_loss, _ = recurrentNet.computeCost(X[0], X[1], lambd=0)
 
