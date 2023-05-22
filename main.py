@@ -4,12 +4,10 @@ import json
 from datetime import datetime
 import numpy as np
 import matplotlib.pyplot as plt
-from misc import oneHotEncode, readData, prepareData, generateSequences, cleanData
+from misc import oneHotEncode, readData, prepareData, generateSequences, cleanData, generateTrainingData
 from model import VanillaRNN, LSTM, LSTM_2L
 import random
-import gensim
-from gensim.models import Word2Vec
-from sklearn.decomposition import PCA
+from sklearn.utils import shuffle
 
 # get paths
 home_path = os.getcwd()
@@ -20,7 +18,7 @@ log_path = home_path + '/logs/'
 
 # ========================================================================== #
 # ------------------------ DD2424 PROJECT - LSTMs -------------------------- #
-#--------------------------------------------------------------------------- #
+# --------------------------------------------------------------------------- #
 # --- By: Oskar Stigland, Daniela Eklund, Daniel Hartler, August Tengland--- #
 # ========================================================================== #
 
@@ -28,14 +26,15 @@ log_path = home_path + '/logs/'
 def main():
 
     # define globally for access in helper functions
-    global keyToChar
-    global charToKey
+    global keyToToken
+    global tokenToKey
     global seq_length
+    global K
 
     # define params
     m = 200  # dimensionality of its hidden state
     sigma = 0.01
-    seq_length = 25
+    seq_length = 10
 
     print("Processing Data...")
 
@@ -47,41 +46,23 @@ def main():
     data = readData(fpath)
 
     # clean data
-    tokens = cleanData(data)
-
-    print('Total Tokens: %d' % len(tokens))
-    print('Unique Tokens: %d' % len(set(tokens)))
-
+    tokens = cleanData(data, stopwords=True)
 
     # create word-key-word mapping
     keyToToken, tokenToKey = prepareData(tokens)
     K = len(keyToToken)  # nr of unique characters
 
     # define X, w. one-hot encoded representations of sequences
-    #data = oneHotEncode(np.array([charToKey[char] for char in data]))
-    x_seq, y_sec = generateSequences(tokens, seq_length)
-
-    # Create CBOW model
-    w2v_model = gensim.models.Word2Vec(x_seq, min_count = 1, vector_size = 100, window = 5)
-
-    vocab_len = len(w2v_model.wv)
-    print('Vocab length:', vocab_len)
-
-    word_vectors = w2v_model.wv
-
-    """ 
-    TODO: 
-    Implement batches, which are composed of multiple sequences
-    After this we only shuffle batch order, not the sequence order inside of them
-    """
+    # data = oneHotEncode(np.array([charToKey[char] for char in data]))
+    X, y = generateSequences(tokens, seq_length)
 
     # Shuffle sequences in X
-    # random.seed(42)
-    # random.shuffle(X)
+    random.seed(42)
+    X_shuffled, y_shuffled = shuffle(X, y)
 
     # init networks, replace class name to instantiate differnent models
     # Available RNN-models: ['VanillaRNN', 'LSTM', 'LSTM_2L']
-    
+
     vrnn = VanillaRNN(
         K=K,
         m=m,
@@ -96,7 +77,6 @@ def main():
         seed=2
     )
 
-
     lstm_2l = LSTM_2L(
         K=K,
         m=m,
@@ -104,20 +84,19 @@ def main():
         seed=2
     )
 
-    num_iterations = 10000
+    num_iterations = 200000
 
-    # vrnn, lossHist = runTraining(vrnn, X, num_iterations)
-    # generateAndLogSequence(vrnn, X, num_iterations, lossHist[-1])
+    # vrnn, lossHist = runTraining(vrnn, X_shuffled, y_shuffled, num_iterations)
+    # generateAndLogSequence(vrnn, X_shuffled, num_iterations, lossHist[-1])
     # plotLoss(vrnn, lossHist, num_iterations)
 
-    # lstm, lossHist = runTraining(lstm, X, num_iterations)
-    # generateAndLogSequence(lstm, X, num_iterations, lossHist[-1])
-    # plotLoss(lstm, lossHist, num_iterations)
+    lstm, lossHist = runTraining(lstm, X_shuffled, y_shuffled, num_iterations)
+    generateAndLogSequence(lstm, X_shuffled, num_iterations, lossHist[-1])
+    plotLoss(lstm, lossHist, num_iterations)
 
-    # lstm_2l, lossHist = runTraining(lstm_2l, X, num_iterations)
-    # generateAndLogSequence(lstm_2l, X, num_iterations, lossHist[-1])
+    # lstm_2l, lossHist = runTraining(lstm_2l, X_shuffled, y_shuffled, num_iterations)
+    # generateAndLogSequence(lstm_2l, X_shuffled, num_iterations, lossHist[-1])
     # plotLoss(lstm_2l, lossHist, num_iterations)
-
 
 
 # =====================================================
@@ -125,7 +104,7 @@ def main():
 # =====================================================
 
 
-def runTraining(rnn, X, num_iterations):
+def runTraining(rnn, X, y, num_iterations):
 
     m = rnn.m
 
@@ -136,17 +115,20 @@ def runTraining(rnn, X, num_iterations):
     print('\n------EPOCH {}--------\n'.format(epoch_n))
 
     lossHist = []
-    loss_smooth = rnn.computeLoss(X[0][:-1], X[0][1:])
+    loss_smooth = rnn.computeLoss(oneHotEncode(np.array([tokenToKey[token] for token in X[0]]), K), oneHotEncode(
+        np.array([tokenToKey[token] for token in y[0]]), K))
     loss_best = loss_smooth
     lossHist.append(loss_smooth)
     print('Iteration 0, LOSS: {}'.format(loss_smooth))
 
-    n = len(X)
+    n_sequences = len(X)
     e = 0
     for i in range(1, num_iterations+1):
 
-        x_seq = X[e][:-1]
-        y_seq = X[e][1:]
+        x_seq = oneHotEncode(
+            np.array([tokenToKey[token] for token in X[e]]), K)
+        y_seq = oneHotEncode(
+            np.array([tokenToKey[token] for token in y[e]]), K)
 
         rnn.train(x_seq, y_seq, eta=0.1)
         loss = rnn.computeLoss(x_seq, y_seq)
@@ -165,17 +147,16 @@ def runTraining(rnn, X, num_iterations):
         if i % 1000 == 0:
 
             sequence = rnn.synthesizeText(
-                x0=X[e][:1],
-                n=250
+                x0=x_seq[:1],
+                n=10
             )
 
-            # convert to chars and print sequence
-            sequence = ''.join([keyToChar[key] for key in sequence])
-            print('\nGenerated sequence \n\n {}\n'.format(sequence))
+            # convert to words and print sequence
+            _ = printSequence(sequence)
 
         # update e
-        if e < (n - seq_length):
-            e += seq_length
+        if e < (n_sequences - 1):
+            e += 1
         else:
             e = 0
 
@@ -189,31 +170,40 @@ def runTraining(rnn, X, num_iterations):
 
     rnn.weights = weights_best
     logTrainingResults(rnn, num_iterations, loss_smooth, loss_best)
-    
+
     return rnn, lossHist
+
 
 def logTrainingResults(rnn, num_iterations, loss_smooth, loss_best):
     now = datetime.now()
     f = open(log_path + "trainingResults.txt", "a")
-    f.write("New Training Log, time: " + now.strftime("%d/%m/%Y %H:%M:%S") + "\n")
-    f.write("Model type: " + rnn.type + ", num_iterations: " + str(num_iterations) + ", current_loss: " + str(loss_smooth) + ", best_loss: " + str(loss_best) + "\n")
+    f.write("New Training Log, time: " +
+            now.strftime("%d/%m/%Y %H:%M:%S") + "\n")
+    f.write("Model type: " + rnn.type + ", num_iterations: " + str(num_iterations) +
+            ", current_loss: " + str(loss_smooth) + ", best_loss: " + str(loss_best) + "\n")
     f.write("\n")
     f.close()
-    
+
+
 def generateAndLogSequence(rnn, X, num_iterations, loss_smooth):
     sequence = printAndReturnSequence(rnn, X)
     now = datetime.now()
-    f = open(log_path + str(rnn.type) + '_' + str(num_iterations) + '_text_generation.txt', "w")
-    f.write("Text generation for model type " + rnn.type + " at time: " + now.strftime("%d/%m/%Y %H:%M:%S") + "\n")
-    f.write("Num_iterations: " + str(num_iterations) + ", current_loss: " + str(loss_smooth) + "\n")
+    f = open(log_path + str(rnn.type) + '_' +
+             str(num_iterations) + '_text_generation.txt', "w")
+    f.write("Text generation for model type " + rnn.type +
+            " at time: " + now.strftime("%d/%m/%Y %H:%M:%S") + "\n")
+    f.write("Num_iterations: " + str(num_iterations) +
+            ", current_loss: " + str(loss_smooth) + "\n")
     f.write("Generated text: \n \n")
     f.write(sequence)
     f.write("\n")
     f.close()
 
+
 def plotLoss(rnn, lossHist, num_iterations):
 
-    plotTitle = "Smooth loss for {rnnType}, after {num_iterations} iterations".format(rnnType = rnn.type, num_iterations = num_iterations)
+    plotTitle = "Smooth loss for {rnnType}, after {num_iterations} iterations".format(
+        rnnType=rnn.type, num_iterations=num_iterations)
 
     # plot results
     steps = [step * 10 for step in range(len(lossHist))]
@@ -222,21 +212,40 @@ def plotLoss(rnn, lossHist, num_iterations):
     plt.xlabel('Iterations')
     plt.ylabel('Loss', rotation=0, labelpad=20)
     plt.title(plotTitle)
-    plt.savefig(plot_path + str(rnn.type) + '_' + str(num_iterations) + '_iter_loss.png', dpi=200)
+    plt.savefig(plot_path + str(rnn.type) + '_' +
+                str(num_iterations) + '_iter_loss.png', dpi=200)
     plt.clf()
 
-def printAndReturnSequence(rnn, X):
 
-    sequence = rnn.synthesizeText(
-            x0=X[0][:1],
-            n=1000
-        )
+def printSequence(seq, i=0):
+    sequence = ' '.join([keyToToken[key] for key in seq])
+    sequence += '.'
+    sequence = sequence.capitalize()
 
-    # convert to chars and print sequence
-    sequence = ''.join([keyToChar[key] for key in sequence])
-    print('\nGenerated sequence \n\t {}\n'.format(sequence))
+    if i == 0:
+        print('\nGenerated sequence: \n\n{}'.format(sequence))
+
+    else:
+        print('{}'.format(sequence))
 
     return sequence
+
+
+def printAndReturnSequence(rnn, X, n_seq=10):
+    sequence_str = ''
+    for i in range(n_seq):
+        sequence = rnn.synthesizeText(
+            x0=oneHotEncode(np.array([tokenToKey[token]
+                            for token in X[i]]), K)[:1],
+            n=10
+        )
+
+        # convert to chars and print sequence
+        sequence_str += printSequence(sequence, i)
+    # sequence = ''.join([keyToToken[key] for key in sequence])
+    # print('\nGenerated sequence \n\t {}\n'.format(sequence))
+
+    return sequence_str
 
 
 # =====================================================
