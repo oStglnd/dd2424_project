@@ -106,3 +106,6 @@ Model type: VanillaRNN, num_iterations: 100, current_loss: 106.11298697104358, b
 New Training Log, time: 19/05/2023 00:31:02
 Model type: LSTM, num_iterations: 100, current_loss: 101.47089416669488, best_loss: 101.47089416669488
 
+New Training Log, time: 19/05/2023 16:29:44
+Model type: LSTM, num_iterations: 10000, current_loss: 41.71475073806615, best_loss: 41.31721581278779
+

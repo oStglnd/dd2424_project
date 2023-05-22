@@ -4,9 +4,12 @@ import json
 from datetime import datetime
 import numpy as np
 import matplotlib.pyplot as plt
-from misc import oneHotEncode, readData, prepareData, generateSequences
+from misc import oneHotEncode, readData, prepareData, generateSequences, cleanData
 from model import VanillaRNN, LSTM, LSTM_2L
 import random
+import gensim
+from gensim.models import Word2Vec
+from sklearn.decomposition import PCA
 
 # get paths
 home_path = os.getcwd()
@@ -43,14 +46,28 @@ def main():
     # read text file
     data = readData(fpath)
 
+    # clean data
+    tokens = cleanData(data)
+
+    print('Total Tokens: %d' % len(tokens))
+    print('Unique Tokens: %d' % len(set(tokens)))
+
+
     # create word-key-word mapping
-    keyToChar, charToKey = prepareData(data)
-    
-    K = len(keyToChar)  # nr of unique characters
+    keyToToken, tokenToKey = prepareData(tokens)
+    K = len(keyToToken)  # nr of unique characters
 
     # define X, w. one-hot encoded representations of sequences
-    data = oneHotEncode(np.array([charToKey[char] for char in data]))
-    X = generateSequences(data, seq_length)
+    #data = oneHotEncode(np.array([charToKey[char] for char in data]))
+    x_seq, y_sec = generateSequences(tokens, seq_length)
+
+    # Create CBOW model
+    w2v_model = gensim.models.Word2Vec(x_seq, min_count = 1, vector_size = 100, window = 5)
+
+    vocab_len = len(w2v_model.wv)
+    print('Vocab length:', vocab_len)
+
+    word_vectors = w2v_model.wv
 
     """ 
     TODO: 
@@ -61,7 +78,6 @@ def main():
     # Shuffle sequences in X
     # random.seed(42)
     # random.shuffle(X)
-
 
     # init networks, replace class name to instantiate differnent models
     # Available RNN-models: ['VanillaRNN', 'LSTM', 'LSTM_2L']
@@ -88,15 +104,15 @@ def main():
         seed=2
     )
 
-    num_iterations = 1000
+    num_iterations = 10000
 
-    vrnn, lossHist = runTraining(vrnn, X, num_iterations)
-    generateAndLogSequence(vrnn, X, num_iterations, lossHist[-1])
-    plotLoss(vrnn, lossHist, num_iterations)
+    # vrnn, lossHist = runTraining(vrnn, X, num_iterations)
+    # generateAndLogSequence(vrnn, X, num_iterations, lossHist[-1])
+    # plotLoss(vrnn, lossHist, num_iterations)
 
-    lstm, lossHist = runTraining(lstm, X, num_iterations)
-    generateAndLogSequence(lstm, X, num_iterations, lossHist[-1])
-    plotLoss(lstm, lossHist, num_iterations)
+    # lstm, lossHist = runTraining(lstm, X, num_iterations)
+    # generateAndLogSequence(lstm, X, num_iterations, lossHist[-1])
+    # plotLoss(lstm, lossHist, num_iterations)
 
     # lstm_2l, lossHist = runTraining(lstm_2l, X, num_iterations)
     # generateAndLogSequence(lstm_2l, X, num_iterations, lossHist[-1])

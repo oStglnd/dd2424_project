@@ -2,6 +2,7 @@
 import numpy as np
 import pickle
 import scipy.io as sio
+import string
 
 
 def readData(fpath: str) -> object:
@@ -9,17 +10,30 @@ def readData(fpath: str) -> object:
     with open(fpath, 'r') as fo:
         data = fo.read()
 
-    # with open(fpath, 'r') as fo:
-    #     data = fo.readlines()
-
-    # # split lines into words and words into chars
-    # data = [char
-    #             for line in data
-    #                 for word in list(line)
-    #                     for char in list(word)
-    # ]
-
     return data
+
+# turn a doc into clean tokens
+
+
+def cleanData(doc):
+
+    # replace '--' with a space ' '
+    data = doc.replace('--', ' ')
+
+    # split into tokens by whitespace
+    tokens = data.split()
+
+    # remove punctuation from each token
+    table = str.maketrans('', '', string.punctuation)
+    tokens = [w.translate(table) for w in tokens]
+
+    # remove non alphabetic tokens
+    tokens = [word for word in tokens if word.isalpha()]
+
+    # make all tokens lower case
+    tokens = [word.lower() for word in tokens]
+
+    return tokens
 
 
 def prepareData(data: object) -> dict:
@@ -34,10 +48,12 @@ def prepareData(data: object) -> dict:
 
 def generateSequences(data: np.array, seq_length: int) -> np.array:
     x = []
-    for i in range(len(data) - seq_length - 1):
-        x.append(data[i:i+seq_length+1])
+    y = []
+    for i in range(0, len(data) - seq_length - 1, seq_length):
+        x.append(data[i:i+seq_length])
+        y.append(data[i+1:i+seq_length+1])
 
-    return x
+    return x, y
 
 
 def sigmoid(S: np.array) -> np.array:
@@ -53,7 +69,7 @@ def sigmoid(S: np.array) -> np.array:
     return 1 / (1 + np.exp(-S))
 
 
-def softMax(S: np.array, temperature = 1.0) -> np.array:
+def softMax(S: np.array, temperature=1.0) -> np.array:
     """
     Parameters
     ----------
