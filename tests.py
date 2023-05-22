@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from misc import oneHotEncode
-from model import recurrentNeuralNetwork, LSTM
+from model import VanillaRNN, LSTM, LSTM_2L
 
 # get paths
 # home_path = os.path.dirname(os.getcwd())
@@ -17,6 +17,8 @@ plot_path = home_path + '\\plots\\'
 # get text data
 fname = 'shakespeare.txt'
 fpath = data_path + fname
+
+print("Processing Data...")
 
 # read text file
 with open(fpath, 'r') as fo:
@@ -35,8 +37,8 @@ charToKey = dict([(val, key) for key, val in keyToChar.items()])
 # define params
 K  = len(keyToChar)
 m = 100
-sigma = 0.01
-seq_length = 25
+sigma = 0.1
+seq_length = 2
 
 # define X, and Y, w. one-hot encoded representations
 data = oneHotEncode(np.array([charToKey[char] for char in data]))
@@ -45,30 +47,45 @@ for i in range(len(data) - seq_length):
     X.append(data[i:i+seq_length])
 
 # init networks
-lstmNet = LSTM(
+rnn = LSTM_2L(
     K=K,
     m=m,
     sigma=sigma,
     seed=2
 )
 
-gradsListNum = lstmNet.computeGradsNumerical(
+gradsListNum = rnn.computeGradsNumerical(
     X[1], 
     X[2],
-    eps=1e-5
+    eps=1e-4
 )
 
-gradsList = lstmNet.computeGrads(
+gradsList = rnn.computeGrads(
     X[1], 
     X[2],
 )
 
 print('\nGradient check:')
-for key, grads in gradsList.items():
-    W_gradDiffMax = np.max(np.abs(grads[:50, :50] - gradsListNum[key][:50, :50]))
-    print('\t max|{} - {}_num| = {:.10f}'.format(key, key, W_gradDiffMax))
-    
-    
+
+if rnn.type == "LSTM_2L": 
+    for idx, subgradList in enumerate(gradsList):
+        print("Checking gradient layer: " + str(idx+1) + ":")
+        for key, grads in subgradList.items():
+            print(np.min(np.abs(grads[:50, :50])))
+            gradDiff = np.abs(grads[:50, :50]-gradsListNum[idx][key][:50, :50])
+            gradDenom = np.maximum(1e-9, np.abs(grads[:50, :50])+np.abs(gradsListNum[idx][key][:50, :50]))
+            W_gradDiffMax = np.max(gradDiff/gradDenom)
+            print('\t max|{} - {}_num| = {:.10f}'.format(key, key, W_gradDiffMax))          
+
+else: 
+    for key, grads in gradsList.items():
+        print(np.min(np.abs(grads[:50, :50])))
+        gradDiff = np.abs(grads[:50, :50]-gradsListNum[key][:50, :50])
+        gradDenom = np.maximum(1e-9, np.abs(grads[:50, :50])+np.abs(gradsListNum[key][:50, :50]))
+        W_gradDiffMax = np.max(gradDiff/gradDenom)
+        print('\t max|{} - {}_num| = {:.10f}'.format(key, key, W_gradDiffMax))
+
+
 # lossHist = []
 # smooth_loss, _ = recurrentNet.computeCost(X[0], X[1], lambd=0)
 

@@ -30,9 +30,9 @@ def main():
     global seq_length
 
     # define params
-    m = 200  # dimensionality of its hidden state
-    sigma = 0.01
-    seq_length = 25
+    m = 100  # dimensionality of its hidden state
+    sigma = 0.05
+    seq_length = 50
 
     print("Processing Data...")
 
@@ -88,19 +88,19 @@ def main():
         seed=2
     )
 
-    num_iterations = 1000
+    num_iterations = 6000
 
-    vrnn, lossHist = runTraining(vrnn, X, num_iterations)
-    generateAndLogSequence(vrnn, X, num_iterations, lossHist[-1])
-    plotLoss(vrnn, lossHist, num_iterations)
+    # vrnn, lossHist = runTraining(vrnn, X, num_iterations)
+    # generateAndLogSequence(vrnn, X, num_iterations, lossHist[-1])
+    # plotLoss(vrnn, lossHist, num_iterations)
 
-    lstm, lossHist = runTraining(lstm, X, num_iterations)
-    generateAndLogSequence(lstm, X, num_iterations, lossHist[-1])
-    plotLoss(lstm, lossHist, num_iterations)
+    # lstm, lossHist = runTraining(lstm, X, num_iterations)
+    # generateAndLogSequence(lstm, X, num_iterations, lossHist[-1])
+    # plotLoss(lstm, lossHist, num_iterations)
 
-    # lstm_2l, lossHist = runTraining(lstm_2l, X, num_iterations)
-    # generateAndLogSequence(lstm_2l, X, num_iterations, lossHist[-1])
-    # plotLoss(lstm_2l, lossHist, num_iterations)
+    lstm_2l, lossHist = runTraining(lstm_2l, X, num_iterations)
+    generateAndLogSequence(lstm_2l, X, num_iterations, lossHist[-1])
+    plotLoss(lstm_2l, lossHist, num_iterations)
 
 
 
@@ -180,7 +180,8 @@ def logTrainingResults(rnn, num_iterations, loss_smooth, loss_best):
     now = datetime.now()
     f = open(log_path + "trainingResults.txt", "a")
     f.write("New Training Log, time: " + now.strftime("%d/%m/%Y %H:%M:%S") + "\n")
-    f.write("Model type: " + rnn.type + ", num_iterations: " + str(num_iterations) + ", current_loss: " + str(loss_smooth) + ", best_loss: " + str(loss_best) + "\n")
+    f.write("Model type: " + rnn.type + ", m: " + str(rnn.m) + ", sigma: " + str(rnn.sigma) + "\n")
+    f.write("Num_iterations: " + str(num_iterations) + ", current_loss: " + str(loss_smooth) + ", best_loss: " + str(loss_best) + "\n")
     f.write("\n")
     f.close()
     
@@ -206,7 +207,7 @@ def plotLoss(rnn, lossHist, num_iterations):
     plt.xlabel('Iterations')
     plt.ylabel('Loss', rotation=0, labelpad=20)
     plt.title(plotTitle)
-    plt.savefig(plot_path + str(rnn.type) + '_' + str(num_iterations) + '_iter_loss.png', dpi=200)
+    plt.savefig(plot_path + str(rnn.type) + '_' + str(rnn.sigma) + '_' + str(num_iterations) + '_iter_loss.png', dpi=200)
     plt.clf()
 
 def printAndReturnSequence(rnn, X):
