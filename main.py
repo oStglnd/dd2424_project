@@ -89,7 +89,7 @@ def main():
         seed=2
     )
 
-    num_iterations = 1000
+    num_iterations = 10_000
 
     # vrnn, lossHistVrnn = runTraining(vrnn, X, num_iterations)
     # generateAndLogSequence(vrnn, X, num_iterations, lossHistVrnn[-1])

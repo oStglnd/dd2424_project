@@ -37,10 +37,10 @@ def countCorrectWords(guess, truth):
     # res = "Valid words generated {} out of {}".format(num_correct_words, total_words)
     return num_correct_words/total_words
 def bleu(guess, truth, word_dict):
-    def match_seq_len(guess_char_array, truth_char_array):
+    def match_seq_len(guess_word_array, truth_word_array):
         match_count = 0
         j = 0
-        while guess_char_array[j] == truth_char_array[j] and j < len(guess_char_array):
+        while guess_word_array[j] == truth_word_array[j] and j < len(guess_word_array)-1 and j <= len(truth_word_array)-1:
             match_count += 1
             j += 1
         return match_count
@@ -54,18 +54,17 @@ def bleu(guess, truth, word_dict):
     filtered_guess = filtered_guess2
 
     n_grams = []
-    max_n_gram_len = 100
-    for i in range(len(filtered_guess)-1):
+    for i in range(len(filtered_guess)):
         n_gram_curr_word = 0
         guess_to_match = filtered_guess[i:]
         if filtered_guess[i] in word_dict:
             for m in word_dict[filtered_guess[i]]:
-                truth_to_match = truth[m : m+max_n_gram_len]
+                truth_to_match = truth[m :]
                 tmp = match_seq_len(guess_to_match, truth_to_match)
                 if tmp > n_gram_curr_word:
                     n_gram_curr_word = tmp
             n_grams.append(n_gram_curr_word)
-    return(np.sum(np.square(np.array(n_grams))))
+    return (np.sum(np.square(np.array(n_grams)))) / len(filtered_guess)
 
 def getCharData(fpath:str) -> list:
     # read text file
