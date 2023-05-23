@@ -95,11 +95,17 @@ def prepareData(data: object) -> dict:
 
 
 def generateSequences(data: np.array, seq_length: int) -> np.array:
-    x = []
+    X = []
     for i in range(len(data) - seq_length - 1):
-        x.append(data[i:i+seq_length+1])
-
-    return x
+        X.append(data[i:i+seq_length+1])
+    
+    train_frac = 0.9
+    train_n = int(len(X) * train_frac)
+    
+    X_train = X[:train_n]
+    X_val = X[train_n:]
+    
+    return X_train, X_val
 
 
 def sigmoid(S: np.array) -> np.array:
