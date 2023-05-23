@@ -43,9 +43,9 @@ def plotLossBare(rnn_type, num_iterations, lossHist):
     plt.savefig(plot_path + str(rnn_type) + '_' + str(num_iterations) + '_iter_loss.png', dpi=200)
     plt.clf()
 
-def multiPlotLoss(rnn_list, num_iterations, lossHist_list):
+def multiPlotLoss(rnn_list, num_iterations, lossHist_list, test_set):
 
-    plotTitle = "Smooth loss after {num_iterations} iterations".format(num_iterations = num_iterations)
+    plotTitle = "Smooth loss on {test_set} set".format(test_set = test_set)
 
     line_colors = ['r','g','b','c','m','y']
 
@@ -58,7 +58,7 @@ def multiPlotLoss(rnn_list, num_iterations, lossHist_list):
     plt.xlabel('Iterations')
     plt.ylabel('Loss', rotation=0, labelpad=20)
     plt.title(plotTitle)
-    plt.savefig(plot_path + 'multi_' + str(num_iterations) + '_iter_loss.png', dpi=200)
+    plt.savefig(plot_path + 'multi_' + str(test_set) + '_' + str(num_iterations) + '_iter_loss.png', dpi=200)
     plt.clf()
 
 def multiPlotLossBare(rnn_type_list, num_iterations, lossHist_list):
@@ -79,9 +79,9 @@ def multiPlotLossBare(rnn_type_list, num_iterations, lossHist_list):
     plt.savefig(plot_path + 'multi_' + str(num_iterations) + '_iter_loss.png', dpi=200)
     plt.clf()
 
-def multiPlotLossHiddenLayer(rnn_type, num_iterations, lossHist_list):
+def multiPlotLossHiddenLayer(rnn_type, num_iterations, lossHist_list, test_set):
 
-    plotTitle = "Smooth loss after {num_iterations} iterations".format(num_iterations = num_iterations)
+    plotTitle = "Smooth loss on {test_set} set".format(test_set = test_set)
 
     # line_colors = ['#ffc9bb','#ff8164','#ff4122','#c61a09','#b60503']
     line_colors = ['r','g','b','c','m','y']
@@ -96,7 +96,7 @@ def multiPlotLossHiddenLayer(rnn_type, num_iterations, lossHist_list):
     plt.xlabel('Iterations')
     plt.ylabel('Loss', rotation=0, labelpad=20)
     plt.title(plotTitle)
-    plt.savefig(plot_path + str(rnn_type) + '_m_' +  str(num_iterations) + '_iter_loss.png', dpi=200)
+    plt.savefig(plot_path + str(rnn_type) + '_m_' + str(test_set) + '_'+ str(num_iterations) + '_iter_loss.png', dpi=200)
     plt.clf()
 
 def paramSearchHeatmap(rnn, num_iterations, paramName1, paramList1, paramName2, paramList2, bestLoss_matrix):
