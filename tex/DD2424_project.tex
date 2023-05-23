@@ -57,7 +57,7 @@
 
 \newpage
 
-\section*{LSTM Backpropagation}
+\section*{Single-layer LSTM Backpropagation}
 
 \subsection*{Forward pass}
 	The forward pass is defined as follows, 
@@ -139,4 +139,57 @@
 		\frac{\partial L}{\partial V} &= \sum_{t=1}^T \bm{g}_t\bm{h}_t
 	\end{align}
 
+\newpage
+\section*{Multi-layer LSTM Backpropagation}
+\subsection*{Forward pass}
+	For a multi-layer LSTM, the forward pass follows that of the single-layer LSTM for each layer, with the exception that for all layers but the first, we replace the original input, $\bm{x}_t$, with the output of the previous layer. That is, for any layer $k$, for $k > 1$, we have that
+	$$\bm{x}_t^{(k)} = \bm{o}_t^{(k-1)}$$
+	such that we can describe a general forward pass as
+	\begin{align*}
+		\bm{i}_t^{(k)} &= \sigma(W_i \bm{h}_{t-1}^{(k)} + U_i\bm{o}_t^{(k-1)}) \\
+		\bm{f}_t^{(k)} &= \sigma(W_f \bm{h}_{t-1}^{(k)} + U_f\bm{o}_t^{(k-1)}) \\
+		\bm{e}_t^{(k)} &= \sigma(W_e \bm{h}_{t-1}^{(k)} + U_e\bm{o}_t^{(k-1)}) \\
+		\tilde{\bm{c}}_t^{(k)} &= \tanh(W_c\bm{h}_{t-1}^{(k)} + U_c\bm{o}_t^{(k-1)}) \\
+		\bm{c}_t^{(k)} &= \bm{f}_t^{(k)} \bullet \bm{c}_{t-1}^{(k)} + \bm{i}_t^{(k)} \bullet \tilde{\bm{c}}_t^{(k)} \\
+		\bm{h}_t^{(k)} &= \bm{e}_t^{(k)} \bullet \tanh(\bm{c}_t^{(k)})\\
+		\bm{o}_t^{(k)} &= V \bm{h}_t^{(k)}
+	\end{align*}
+	where for $k = 1$ we have that $\bm{o}_t^{(k-1)} := \bm{x}_t$ and for $k = K$ we apply a softmax operation to the output, such that the final output of the network is given by
+	$$\bm{p}_t = \text{softmax}(\bm{o}_t^{(K)})$$
+
+\subsection*{Backward pass}
+	When calculating the gradients for the final layer, i.e. $k = K$, we can proceed as in the case of a single-layer LSTM, with the exception of using $\bm{o}_t^{(K-1)}$ instead of $\bm{x}_t$ from the forward pass. However, when considering the gradients for the preceding layer, i.e. $k = K-1$, we start by considering the gradient of the loss with respect to the output:
+	\begin{align*} \frac{\partial L}{\partial \bm{o}_t^{(K-1)}} &= \frac{\partial L}{\partial \bm{i}_t^{(K)}} \frac{\partial \bm{i}_t^{(K)}}{\partial \bm{o}_t^{(K-1)}} + \frac{\partial L}{\partial \bm{f}_t^{(K)}} \frac{\partial \bm{f}_t^{(K)}}{\partial \bm{o}_t^{(K-1)}} + \frac{\partial L}{\partial \bm{e}_t^{(K)}} \frac{\partial \bm{e}_t^{(K)}}{\partial \bm{o}_t^{(K-1)}} + \frac{\partial L}{\partial \tilde{\bm{c}}_t^{(K)}} \frac{\partial \tilde{\bm{c}}_t^{(K)}}{\partial \bm{o}_t^{(K-1)}}\\
+	&= \hat{\bm{g}}_t^{(K)}\,\tilde{\bm{c}}_t^{(K)} \bm{i}_t^{(K)} (1 - \bm{i}_t^{(K)}) U_i^{(K)}\\
+	&\quad + \hat{\bm{g}}_t^{(K)}\,\bm{c}_{t-1}^{(K)} \bm{f}_t^{(K)} (1 - \bm{f}_t^{(K)}) U_f^{(K)}\\
+	&\quad + \tilde{\bm{g}}_t^{(K)}\,  \tanh(\bm{c}_t^{(K)})\bm{e}_t^{(K)}(1 - \bm{e}_t^{(K)})U_e^{(K)}\\
+	&\quad +  \hat{\bm{g}}_t^{(K)}\, \bm{i}_t^{(K)} (1 - (\tilde{\bm{c}}_t^{(K)})^2)U_c^{(K)}
+	\end{align*}
+	We recognize that this iterative pattern is indeed true for all layers for which $k < K$, and define a general expression for the gradient w.r.t. $\bm{o}_t^{(k)}$, and set $\bm{g}_t^{(k)} := \frac{\partial L}{\partial \bm{o}_t^{(k)}}$ such that
+	$$\bm{g}_t^{(K)} = -(\bm{y}_t - \bm{p}_t)^T, \quad \forall\, t = 1, 2, \dots, T$$
+	and, for $k = 1, 2, \dots, K - 1$:
+	\begin{align*}
+		\bm{g}_t^{(k)} &= \hat{\bm{g}}_t^{(k+1)}\,\tilde{\bm{c}}_t^{(k+1)} \bm{i}_t^{(k+1)} (1 - \bm{i}_t^{(k+1)}) U_i^{(k+1)} \\
+		&\quad + \hat{\bm{g}}_t^{(k+1)}\,\bm{c}_{t-1}^{(k+1)} \bm{f}_t^{(k+1)} (1 - \bm{f}_t^{(k+1)}) U_f^{(k+1)}\\		&\quad + \tilde{\bm{g}}_t^{(k+1)}\,  \tanh(\bm{c}_t^{(k+1)})\bm{e}_t^{(k+1)}(1 - \bm{e}_t^{(k+1)})U_e^{(k+1)}\\
+		&\quad +  \hat{\bm{g}}_t^{(k+1)}\, \bm{i}_t^{(k+1)} (1 - (\tilde{\bm{c}}_t^{(k+1)})^2)U_c^{(k+1)}	
+	\end{align*}
+	for $t = 1, 2, \dots, T$. Now, we may proceed similarly to the one-layer case and define the gradient with respect to the hidden unit and the memory cell:
+	$$\tilde{\bm{g}}_t^{(k)} = \frac{\partial L}{\partial \bm{h}_t^{(k)}}\quad\text{and}\quad \hat{\bm{g}}_t^{(k)} = \frac{\partial L}{\partial \bm{c}_t^{(k)}}$$
+
+\subsubsection*{I - the case of $t = T$}
+	Given that we have computed the gradients for the next layer, i.e. $k+1$, we can compute $\bm{g}_t^{(k)}$ and then compute the gradient with respect to the hidden unit in layer $k$ as 
+	$$\tilde{\bm{g}}_t^{(k)} = \frac{\partial L}{\partial \bm{h}_t^{(k)}} = \bm{g}_t^{(k)}V^{(k)}$$
+	and similarly for the memory cell:
+	$$\hat{\bm{g}}_t^{(k)} = \frac{\partial L}{\partial \bm{c}_t^{(k)}} = \bm{g}_t^{(k)} V^{(k)} \bm{e}_t^{(k)} (1 - \tanh^2(\bm{c}_t^{(k)}))$$
+	for $t = T$. 
+
+\subsubsection*{II - the case of $t < T$}
+	Then, for $t = 1, 2, \dots, T-1$, we have for the hidden unit and the memory cell that
+	\begin{align*}
+	\tilde{\bm{g}}_t^{(k)} &= \bm{g}_t^{(k)} V^{(k)}  + \frac{\partial L}{\partial \bm{i}_{t+1}^{(k)}} \frac{\partial \bm{i}_{t+1}^{(k)}}{\partial \bm{a}_{i, t+1}^{(k)}} W_i^{(k)} + \frac{\partial L}{\partial \bm{f}_{t+1}^{(k)}}  \frac{\partial \bm{f}_{t+1}^{(k)}}{\partial \bm{a}_{f, t+1}^{(k)}}W_f^{(k)}  + \frac{\partial L}{\partial \bm{e}_{t+1}^{(k)}}  \frac{\partial \bm{e}_{t+1}^{(k)}}{\partial \bm{a}_{e t+1}^{(k)}}W_e^{(k)} + \frac{\partial L}{\partial \tilde{\bm{c}}_{t+1}^{(k)}}  \frac{\partial \tilde{\bm{c}}_{t+1}^{(k)}}{\partial \bm{a}_{c, t+1}^{(k)}}W_c^{(k)}\\\\
+	\hat{\bm{g}}_t^{(k)} &= \bm{g}_t^{(k)} V^{(k)} \bm{e}_t^{(k)}(1 - \tanh^2(\bm{c}_t^{(k)})) + \frac{\partial L}{\partial \bm{c}_{t+1}^{(k)}} \bm{f}_{t+1}^{(k)}
+	\end{align*}
+
+	
+	
 \end{document}
