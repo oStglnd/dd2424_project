@@ -31,7 +31,7 @@ def main():
 
     # define params
     m = 100  # dimensionality of its hidden state
-    sigma = 0.05
+    sigma = 0.1
     seq_length = 25
 
     print("Processing Data...")
@@ -88,7 +88,7 @@ def main():
         seed=2
     )
 
-    num_iterations = 5000
+    num_iterations = 100
 
     # vrnn, lossHistVrnn = runTraining(vrnn, X, num_iterations)
     # generateAndLogSequence(vrnn, X, num_iterations, lossHistVrnn[-1])
@@ -106,12 +106,62 @@ def main():
     # lossHist_list = [lossHistVrnn, lossHistLstm, lossHistLstm2]
     # multiPlotLoss(rnn_list, num_iterations, lossHist_list)
 
-    runEtaSigmaGridSearch(X,K,m,num_iterations)
+    # runEtaSigmaGridSearch(X,K,m,num_iterations)
+
+    runHiddenLayerSearch(X,K,m,sigma,num_iterations)
 
 
 # =====================================================
 # ----------------- HELPER METHODS --------------------
 # =====================================================
+
+def runHiddenLayerSearch(X,K,m,sigma,num_iterations): 
+
+    m_list = [10, 50, 100, 150, 200]
+
+    lossHistVrnn_list = []
+    lossHistLstm_list = []
+    lossHistLstm2_list = []
+
+    for m in m_list:
+        print("Testing new params:")
+        print("m = " + str(m))
+
+        vrnn = VanillaRNN(
+            K=K,
+            m=m,
+            sigma=sigma,
+            seed=2
+        )
+
+        lstm = LSTM(
+            K=K,
+            m=m,
+            sigma=sigma,
+            seed=2
+        )
+
+        lstm_2l = LSTM_2L(
+            K=K,
+            m=m,
+            sigma=sigma,
+            seed=2
+        )
+
+        vrnn, lossHistVrnn = runTraining(vrnn, X, num_iterations)
+        lstm, lossHistLstm = runTraining(lstm, X, num_iterations)
+        lstm_2l, lossHistLstm2 = runTraining(lstm_2l, X, num_iterations)
+
+        lossHistVrnn_list.append(lossHistVrnn)
+        lossHistLstm_list.append(lossHistLstm)
+        lossHistLstm2_list.append(lossHistLstm2)
+
+    multiPlotLossHiddenLayer('VanillaRNN', num_iterations, lossHistVrnn_list)
+    multiPlotLossHiddenLayer('LSTM', num_iterations, lossHistLstm_list)
+    multiPlotLossHiddenLayer('LSTM_L2', num_iterations, lossHistLstm2_list)
+
+
+
 
 def runEtaSigmaGridSearch(X,K,m,num_iterations): 
 

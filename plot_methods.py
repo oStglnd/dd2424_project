@@ -79,6 +79,26 @@ def multiPlotLossBare(rnn_type_list, num_iterations, lossHist_list):
     plt.savefig(plot_path + 'multi_' + str(num_iterations) + '_iter_loss.png', dpi=200)
     plt.clf()
 
+def multiPlotLossHiddenLayer(rnn_type, num_iterations, lossHist_list):
+
+    plotTitle = "Smooth loss after {num_iterations} iterations".format(num_iterations = num_iterations)
+
+    # line_colors = ['#ffc9bb','#ff8164','#ff4122','#c61a09','#b60503']
+    line_colors = ['r','g','b','c','m','y']
+    m_labels = ['m = 10', 'm = 50', 'm = 100', 'm = 150', 'm = 200']
+
+    # plot results
+    steps = [step * 10 for step in range(len(lossHist_list[0]))]
+    for idx, m in enumerate(m_labels): 
+        plt.plot(steps, lossHist_list[idx], line_colors[idx], linewidth=1.5, alpha=1.0, label=m)
+    plt.legend()
+    plt.xlim(0, steps[-1])
+    plt.xlabel('Iterations')
+    plt.ylabel('Loss', rotation=0, labelpad=20)
+    plt.title(plotTitle)
+    plt.savefig(plot_path + str(rnn_type) + '_m_' +  str(num_iterations) + '_iter_loss.png', dpi=200)
+    plt.clf()
+
 def paramSearchHeatmap(rnn, num_iterations, paramName1, paramList1, paramName2, paramList2, bestLoss_matrix):
 
     plotTitle = "Hyperparameter evaluation with gridsearch for {rnnType}".format(rnnType = rnn.type)
