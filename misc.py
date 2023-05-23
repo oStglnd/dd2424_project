@@ -2,7 +2,69 @@
 import numpy as np
 import pickle
 import scipy.io as sio
+import string
+from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
+from nltk.stem import SnowballStemmer
+from nltk import WordNetLemmatizer
 
+
+def getCharData(fpath:str) -> list:
+    # read text file
+    with open(fpath, 'r') as fo:
+        data = fo.readlines()
+    
+    # get sentences 
+    sentences = ''.join(data).split('.')
+    
+    # get data container
+    data = []
+    
+    # define charDrop list
+    dropChars = ['3', '¤', '#', '&']
+    for sentence in sentences:
+        
+        sentence = list(sentence)
+        sentence = [char for char in sentence if char not in dropChars]
+        
+        data.append(sentence)
+        
+    return data
+
+
+def getTextData(fpath: str) -> list:
+    
+    # read text file
+    with open(fpath, 'r') as fo:
+        data = fo.readlines()
+    
+    # get sentences 
+    sentences = ''.join(data).split('.')
+    
+    data = []
+    for sentence in sentences:
+        # split lines into tokens
+        sentence = word_tokenize(''.join(sentence))
+        
+        # keepList = ['.', ',', ':', ';', '\\n']
+        keepList = []
+        sentence = [word for word in sentence if word.isalpha() or word in keepList]
+    
+        # remove stopwords
+        stops = stopwords.words('english') 
+        sentence = [word for word in sentence if word not in stops]
+        
+        # stem words
+        stemmer = SnowballStemmer('english')
+        sentence = [stemmer.stem(word) for word in sentence]
+        
+        # # lemmatize words
+        # wnl = WordNetLemmatizer()
+        # sentence = [wnl.lemmatize(word.lower()) for word in sentence]
+    
+        data.append(sentence)
+    
+    return data
 
 def readData(fpath: str) -> object:
 
@@ -84,3 +146,19 @@ def oneHotEncode(k: np.array) -> np.array:
         1 if idx == label else 0 for idx in range(numCats+1)]
         for label in k]
     )
+
+def oneHotEncode_v2(k: int, K: int) -> np.array:
+    """
+    Parameters
+    ----------
+    k : label
+    K : category size
+
+    Returns
+    -------
+    y: 1xK one-hot encoded label matrix
+    """
+    y = np.zeros(shape=(1, K))
+    y[0, k] = 1
+    
+    return y
