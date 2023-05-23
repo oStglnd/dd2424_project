@@ -13,6 +13,7 @@ from model_v3 import LSTM
 
 def trainNetwork(
         n_epochs: int,
+        embeddings: bool,
         embedding_dim: int,
         seq_length: int,
         units: list,
@@ -33,17 +34,18 @@ def trainNetwork(
     # get text data
     data = getCharData(fpath)
     
-    # train word2vec
-    w2v_model = gsm.Word2Vec(
-        sentences=data,
-        vector_size=embedding_dim,
-        window=20,
-        min_count=1,
-        workers=1
-    )
-    
-    # extract word vectors
-    char_vecs = w2v_model.wv
+    if embeddings:
+        # train word2vec
+        w2v_model = gsm.Word2Vec(
+            sentences=data,
+            vector_size=embedding_dim,
+            window=20,
+            min_count=1,
+            workers=1
+        )
+        
+        # extract word vectors
+        char_vecs = w2v_model.wv
     
     # split data into words
     data = [char
@@ -54,27 +56,36 @@ def trainNetwork(
     # create word-key-word mapping
     keyToChar = dict(enumerate(np.unique(data)))
     charToKey = dict([(val, key) for key, val in keyToChar.items()])
-    keyToVec = dict([(key, char_vecs.get_vector(char)) for key, char in keyToChar.items()])
-    charToVec = dict([(char, char_vecs.get_vector(char)) for _, char in keyToChar.items()])
     
-    # define X, w. one-hot encoded representations
-    X = []
-    Y = []
+    # define Y, w. one-hot encoded representations
     K = len(charToKey)
+    Y = []
     for word in data:
-        X.append(charToVec[word].astype('float64'))
         Y.append(oneHotEncode_v2(charToKey[word], K).astype('int8'))
     
     # compute sequences
     # seq_length = seq_length
-    X_seqs, Y_seqs = [], []
-    for i in range(len(X) - seq_length):
-        X_seqs.append(X[i:i+seq_length])
+    Y_seqs = []
+    for i in range(len(Y) - seq_length):
         Y_seqs.append(Y[i:i+seq_length])
-    
-    # clip data
-    X_seqs = X_seqs[:-1]
-    Y_seqs = Y_seqs[1:]
+       
+    if embeddings:
+        
+        keyToVec = dict([(key, char_vecs.get_vector(char)) for key, char in keyToChar.items()])
+        charToVec = dict([(char, char_vecs.get_vector(char)) for _, char in keyToChar.items()])
+        
+        X = []
+        for word in data:
+            X.append(charToVec[word].astype('float64'))
+            X_seqs = []
+            for i in range(len(X) - seq_length):
+                X_seqs.append(X[i:i+seq_length])
+        
+        X_seqs = X_seqs[:-1]
+        Y_seqs = Y_seqs[1:]
+
+    else:
+        X_seqs, Y_seqs = Y_seqs[:-1], Y_seqs[1:]
     
     # get val and test data
     train_frac = 0.9
@@ -87,17 +98,20 @@ def trainNetwork(
     # define model params
     # m = 100
     K_out  = len(keyToChar)
+    K_in = embeddings * embedding_dim + (1 - embeddings) * K_out
     sigma = 0.1
     
     recurrentNet = LSTM(
-        K_in=embedding_dim,
+        K_in=K_in,
         K_out=K_out,
         units=units,
         sigma=sigma,
         optimizer='adagrad',
+        embeddings=embeddings,
         seed=2)
     
-    recurrentNet.keyToVec = keyToVec
+    if embeddings:
+        recurrentNet.keyToVec = keyToVec
     
     # save best weights
     weights_best = recurrentNet.layers.copy()
@@ -163,10 +177,6 @@ def trainNetwork(
             # convert to chars and print sequence
             sequence = ''.join([keyToChar[key] for key in sequence])
             print('\nGenerated sequence \n\n {}\n'.format(sequence))
-            
-        if (i % 10000 == 0):
-            with open(model_path + '{}_t{}'.format(model_name, i), 'wb') as fo:
-                pickle.dump(weights_best, fo)
             
         # update e
         if e < (n - seq_length):

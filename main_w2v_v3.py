@@ -17,25 +17,29 @@ fpath = results_path + fname
 saveDict = {
     'model_v10':{
         'n_epochs':2,
-        'embedding_dim':32,
+        'embeddings':False,
+        'embedding_dim':0,
         'seq_length':25,
         'units':[64]
     },
     'model_v11':{
         'n_epochs':2,
-        'embedding_dim':32,
+        'embeddings':False,
+        'embedding_dim':0,
         'seq_length':25,
         'units':[64, 32]
     },
     'model_v12':{
         'n_epochs':2,
-        'embedding_dim':32,
+        'embeddings':False,
+        'embedding_dim':0,
         'seq_length':25,
         'units':[64, 64, 32]
     },
     'model_v13':{
         'n_epochs':2,
-        'embedding_dim':32,
+        'embeddings':False,
+        'embedding_dim':0,
         'seq_length':25,
         'units':[64, 64, 64, 32]
     },
@@ -49,6 +53,7 @@ for model, params in saveDict.items():
         #     pass
     
         n_epochs = params['n_epochs']
+        embeddings = params['embeddings']
         embedding_dim = params['embedding_dim']
         seq_length = params['seq_length']
         units = params['units']
@@ -64,6 +69,7 @@ for model, params in saveDict.items():
         # get training results
         trainLossHist, valLossHist = trainNetwork(
             n_epochs=n_epochs,
+            embeddings=embeddings,
             embedding_dim=embedding_dim,
             seq_length=seq_length,
             units=units,

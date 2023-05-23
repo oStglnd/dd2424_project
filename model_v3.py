@@ -8,15 +8,12 @@ class AdamOpt:
             beta1: float,
             beta2: float,
             eps: float,
-            layers: list
+            layers: list,
         ):
         # save init params
         self.beta1 = beta1
         self.beta2 = beta2
         self.eps = eps
-        
-        # init w2v-mapping
-        self.keyToVec = None
         
         # init dicts for saving moments
         self.m, self.v = [], []
@@ -86,6 +83,7 @@ class LSTM:
             units: list,
             sigma: float,
             optimizer: str,
+            embeddings: bool,
             seed: int
         ):
         
@@ -97,8 +95,10 @@ class LSTM:
         self.K_out = K_out
         self.units = units
         
-        # init key-vec mapping
-        self.keyToVec = None
+        # init w2v-mapping
+        self.embeddings = embeddings
+        if self.embeddings:
+            self.keyToVec = None
         
         # init first layer
         m = units[0]
@@ -175,7 +175,7 @@ class LSTM:
                 p=np.squeeze(p)
             )
             
-            if self.keyToVec:
+            if self.embeddings:
                 x = self.keyToVec[idxNext][np.newaxis, :]
             else:
                 x = np.zeros(shape=(1, self.K_out))
