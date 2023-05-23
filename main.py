@@ -3,7 +3,7 @@ import os
 import json
 from datetime import datetime
 import numpy as np
-from misc import oneHotEncode, readData, prepareData, generateSequences
+from misc import oneHotEncode, readData, prepareData, generateSequences, getAllWords, countCorrectWords, bleu
 from model import VanillaRNN, LSTM, LSTM_2L
 from plot_methods import *
 import random
@@ -43,6 +43,7 @@ def main():
     # read text file
     data = readData(fpath)
 
+    word_dict, text_filtered = getAllWords(data)
     # create word-key-word mapping
     keyToChar, charToKey = prepareData(data)
     
@@ -88,17 +89,23 @@ def main():
         seed=2
     )
 
-    num_iterations = 100
+    num_iterations = 10_000
 
     vrnn, lossHistVrnn_train, lossHistVrnn_test = runTraining(vrnn, X_train, X_val, num_iterations)
     #generateAndLogSequence(vrnn, X_train, num_iterations, lossHistVrnn_train[-1])
     #plotLoss(vrnn, lossHistVrnn_train, num_iterations, 'train')
     #plotLoss(vrnn, lossHistVrnn_test, num_iterations, 'validation')
 
-    lstm, lossHistLstm_train, lossHistLstm_test = runTraining(lstm, X_train, X_val, num_iterations)
+
+    lstm, lossHistLstm = runTraining(lstm, X, num_iterations, word_dict, text_filtered)
+    generateAndLogSequence(lstm, X, num_iterations, lossHistLstm[-1])
+    plotLoss(lstm, lossHistLstm, num_iterations)
+
+    #lstm, lossHistLstm_train, lossHistLstm_test = runTraining(lstm, X_train, X_val, num_iterations)
     #generateAndLogSequence(lstm, X, num_iterations, lossHistLstm[-1])
     #plotLoss(lstm, lossHistLstm_train, num_iterations, 'train')
     #plotLoss(lstm, lossHistLstm_test, num_iterations, 'validation')
+
 
     lstm_2l, lossHistLstm2_train, lossHistLstm2_test = runTraining(lstm_2l, X_train, X_val, num_iterations)
     #generateAndLogSequence(lstm_2l, X, num_iterations, lossHistLstm2[-1])
@@ -113,7 +120,11 @@ def main():
 
     # runEtaSigmaGridSearch(X_train, X_val,K,m,num_iterations)
 
-    runHiddenLayerSearch(X_train, X_val,K,m,sigma,num_iterations)
+
+    # runHiddenLayerSearch(X,K,m,sigma,num_iterations)
+
+    #runHiddenLayerSearch(X_train, X_val,K,m,sigma,num_iterations)
+
 
 
 # =====================================================
@@ -188,7 +199,11 @@ def runEtaSigmaGridSearch(X_train, X_val,K,m,num_iterations):
     paramSearchHeatmap(lstm, num_iterations, 'eta', etas, 'sigma', sigmas, lossHissList_lstm)  
     paramSearchHeatmap(lstm_2l, num_iterations, 'eta', etas, 'sigma', sigmas, lossHissList_lstm2)  
 
-def runTraining(rnn, X_train, X_val, num_iterations, eta=0.1):
+
+def runTraining(rnn, X, num_iterations, word_dict, text_filtered, eta=0.1):
+
+#def runTraining(rnn, X_train, X_val, num_iterations, eta=0.1):
+
 
     m = rnn.m
 
@@ -250,6 +265,10 @@ def runTraining(rnn, X_train, X_val, num_iterations, eta=0.1):
             # convert to chars and print sequence
             sequence = ''.join([keyToChar[key] for key in sequence])
             print('\nGenerated sequence \n\n {}\n'.format(sequence))
+            
+            print('Correct words {}.'.format(countCorrectWords(sequence, word_dict)))
+            print('BLEU score: {}.'.format(bleu(sequence, text_filtered, word_dict)))
+
 
         # update e
         if e < (n - seq_length):

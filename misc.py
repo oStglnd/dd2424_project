@@ -8,6 +8,63 @@ from nltk.corpus import stopwords
 from nltk.stem import SnowballStemmer
 from nltk import WordNetLemmatizer
 
+import re
+def getAllWords(d):
+    text_filtered = re.sub(r'[^a-z ]', '', d.lower()).split(" ")
+    text_filtered2 = []
+    for c in text_filtered:
+        if c != ' ':
+            text_filtered2.append(c)
+    text_filtered = text_filtered2
+    word_dict = {}
+    for i,w in enumerate(text_filtered):
+        if w not in word_dict:
+            word_dict[w] = [i]
+        else:
+            word_dict[w].append(i)
+    
+    return word_dict, text_filtered
+
+def countCorrectWords(guess, truth):
+    filtered_guess = re.sub(r'[^a-z ]', '', guess.lower()).split(" ")
+    text_filtered2 = []
+    for c in filtered_guess:
+        if c != ' ':
+            text_filtered2.append(c)
+    filtered_guess = text_filtered2
+    num_correct_words = sum([1 if w in truth else 0 for w in filtered_guess])
+    total_words = len(filtered_guess)
+    # res = "Valid words generated {} out of {}".format(num_correct_words, total_words)
+    return num_correct_words/total_words
+def bleu(guess, truth, word_dict):
+    def match_seq_len(guess_word_array, truth_word_array):
+        match_count = 0
+        j = 0
+        while guess_word_array[j] == truth_word_array[j] and j < len(guess_word_array)-1 and j <= len(truth_word_array)-1:
+            match_count += 1
+            j += 1
+        return match_count
+    
+                
+    filtered_guess = re.sub(r'[^a-z ]', '', guess.lower()).split(" ")
+    filtered_guess2 = []
+    for c in filtered_guess:
+        if c != ' ':
+            filtered_guess2.append(c)
+    filtered_guess = filtered_guess2
+
+    n_grams = []
+    for i in range(len(filtered_guess)):
+        n_gram_curr_word = 0
+        guess_to_match = filtered_guess[i:]
+        if filtered_guess[i] in word_dict:
+            for m in word_dict[filtered_guess[i]]:
+                truth_to_match = truth[m :]
+                tmp = match_seq_len(guess_to_match, truth_to_match)
+                if tmp > n_gram_curr_word:
+                    n_gram_curr_word = tmp
+            n_grams.append(n_gram_curr_word)
+    return (np.sum(np.square(np.array(n_grams)))) / len(filtered_guess)
 
 def getCharData(fpath:str) -> list:
     # read text file
