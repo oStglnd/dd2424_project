@@ -105,15 +105,15 @@ def main():
     #plotLoss(lstm, lossHistLstm2_train, num_iterations, 'train')
     #plotLoss(lstm, lossHistLstm2_test, num_iterations, 'validation')
 
-    rnn_list = [vrnn,lstm,lstm_2l]
-    lossHist_list_train = [lossHistVrnn_train, lossHistLstm_train, lossHistLstm2_train]
-    lossHist_list_test = [lossHistVrnn_test, lossHistLstm_test, lossHistLstm2_test]
-    multiPlotLoss(rnn_list, num_iterations, lossHist_list_train, 'Training')
-    multiPlotLoss(rnn_list, num_iterations, lossHist_list_test, 'Validation')
+    # rnn_list = [vrnn,lstm,lstm_2l]
+    # lossHist_list_train = [lossHistVrnn_train, lossHistLstm_train, lossHistLstm2_train]
+    # lossHist_list_test = [lossHistVrnn_test, lossHistLstm_test, lossHistLstm2_test]
+    # multiPlotLoss(rnn_list, num_iterations, lossHist_list_train, 'Training')
+    # multiPlotLoss(rnn_list, num_iterations, lossHist_list_test, 'Validation')
 
     # runEtaSigmaGridSearch(X_train, X_val,K,m,num_iterations)
 
-    # runHiddenLayerSearch(X_train, X_val,K,m,sigma,num_iterations)
+    runHiddenLayerSearch(X_train, X_val,K,m,sigma,num_iterations)
 
 
 # =====================================================
@@ -124,20 +124,12 @@ def runHiddenLayerSearch(X_train, X_val,K,m,sigma,num_iterations):
 
     m_list = [10, 50, 100, 150, 200]
 
-    lossHistVrnn_list = []
-    lossHistLstm_list = []
-    lossHistLstm2_list = []
+    lossHistLstm_list_train = []
+    lossHistLstm_list_val = []
 
     for m in m_list:
         print("Testing new params:")
         print("m = " + str(m))
-
-        vrnn = VanillaRNN(
-            K=K,
-            m=m,
-            sigma=sigma,
-            seed=2
-        )
 
         lstm = LSTM(
             K=K,
@@ -146,24 +138,14 @@ def runHiddenLayerSearch(X_train, X_val,K,m,sigma,num_iterations):
             seed=2
         )
 
-        lstm_2l = LSTM_2L(
-            K=K,
-            m=m,
-            sigma=sigma,
-            seed=2
-        )
 
-        vrnn, lossHistVrnn_train, lossHistVrnn_test = runTraining(vrnn, X_train, X_val, num_iterations)
         lstm, lossHistLstm_train, lossHistLstm_test = runTraining(lstm, X_train, X_val, num_iterations)
-        lstm_2l, lossHistLstm2_train, lossHistLstm2_test = runTraining(lstm_2l, X_train, X_val, num_iterations)
 
-        lossHistVrnn_list.append(lossHistVrnn)
-        lossHistLstm_list.append(lossHistLstm)
-        lossHistLstm2_list.append(lossHistLstm2)
+        lossHistLstm_list_train.append(lossHistLstm_train)
+        lossHistLstm_list_val.append(lossHistLstm_test)
 
-    multiPlotLossHiddenLayer('VanillaRNN', num_iterations, lossHistVrnn_list)
-    multiPlotLossHiddenLayer('LSTM', num_iterations, lossHistLstm_list)
-    multiPlotLossHiddenLayer('LSTM_L2', num_iterations, lossHistLstm2_list)
+    multiPlotLossHiddenLayer('LSTM', num_iterations, lossHistLstm_list_train, 'Training')
+    multiPlotLossHiddenLayer('LSTM', num_iterations, lossHistLstm_list_val, 'Validation')
 
 
 
