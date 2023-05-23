@@ -19,38 +19,93 @@ saveDict = {
         'n_epochs':2,
         'embeddings':False,
         'embedding_dim':0,
-        'seq_length':25,
-        'units':[64]
+        'seq_length':50,
+        'units':[100]
     },
     'model_v11':{
         'n_epochs':2,
         'embeddings':False,
         'embedding_dim':0,
-        'seq_length':25,
-        'units':[64, 32]
+        'seq_length':50,
+        'units':[100, 100]
     },
+    
     'model_v12':{
         'n_epochs':2,
         'embeddings':False,
         'embedding_dim':0,
-        'seq_length':25,
-        'units':[64, 64, 32]
+        'seq_length':50,
+        'units':[100, 50]
     },
     'model_v13':{
         'n_epochs':2,
         'embeddings':False,
         'embedding_dim':0,
-        'seq_length':25,
-        'units':[64, 64, 64, 32]
+        'seq_length':50,
+        'units':[100, 100, 100]
+    },
+    
+    'model_v14':{
+        'n_epochs':2,
+        'embeddings':False,
+        'embedding_dim':0,
+        'seq_length':50,
+        'units':[100, 100, 50]
+    },
+    'model_v15':{
+        'n_epochs':2,
+        'embeddings':False,
+        'embedding_dim':0,
+        'seq_length':50,
+        'units':[100, 100, 50, 50]
+    },
+    'model_v16':{
+        'n_epochs':2,
+        'embeddings':False,
+        'embedding_dim':0,
+        'seq_length':100,
+        'units':[100]
+    },
+    'model_v17':{
+        'n_epochs':2,
+        'embeddings':False,
+        'embedding_dim':0,
+        'seq_length':100,
+        'units':[100, 100]
+    },
+    
+    'model_v18':{
+        'n_epochs':2,
+        'embeddings':False,
+        'embedding_dim':0,
+        'seq_length':100,
+        'units':[100, 50]
+    },
+    'model_v19':{
+        'n_epochs':2,
+        'embeddings':False,
+        'embedding_dim':0,
+        'seq_length':100,
+        'units':[100, 100, 100]
+    },
+    
+    'model_v20':{
+        'n_epochs':2,
+        'embeddings':False,
+        'embedding_dim':0,
+        'seq_length':100,
+        'units':[100, 100, 50]
+    },
+    'model_v21':{
+        'n_epochs':2,
+        'embeddings':False,
+        'embedding_dim':0,
+        'seq_length':100,
+        'units':[100, 100, 50, 50]
     },
 }
 
 for model, params in saveDict.items():
-        # try: 
-        #     if saveDict[model]['lossHist']:
-        #         continue
-        # except KeyError:
-        #     pass
     
         n_epochs = params['n_epochs']
         embeddings = params['embeddings']

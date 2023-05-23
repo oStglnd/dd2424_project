@@ -44,8 +44,12 @@ def trainNetwork(
             workers=1
         )
         
+        # save model
+        w2v_model.save(model_path + '{}_w2v'.format(model_name))
+        
         # extract word vectors
         char_vecs = w2v_model.wv
+    
     
     # split data into words
     data = [char
@@ -77,9 +81,10 @@ def trainNetwork(
         X = []
         for word in data:
             X.append(charToVec[word].astype('float64'))
-            X_seqs = []
-            for i in range(len(X) - seq_length):
-                X_seqs.append(X[i:i+seq_length])
+            
+        X_seqs = []
+        for i in range(len(X) - seq_length):
+            X_seqs.append(X[i:i+seq_length])
         
         X_seqs = X_seqs[:-1]
         Y_seqs = Y_seqs[1:]
