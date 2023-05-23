@@ -3,9 +3,9 @@ import os
 import json
 from datetime import datetime
 import numpy as np
-import matplotlib.pyplot as plt
 from misc import oneHotEncode, readData, prepareData, generateSequences
 from model import VanillaRNN, LSTM, LSTM_2L
+from plot_methods import *
 import random
 
 # get paths
@@ -32,7 +32,7 @@ def main():
     # define params
     m = 100  # dimensionality of its hidden state
     sigma = 0.05
-    seq_length = 50
+    seq_length = 25
 
     print("Processing Data...")
 
@@ -88,28 +88,70 @@ def main():
         seed=2
     )
 
-    num_iterations = 6000
+    num_iterations = 5000
 
-    # vrnn, lossHist = runTraining(vrnn, X, num_iterations)
-    # generateAndLogSequence(vrnn, X, num_iterations, lossHist[-1])
-    # plotLoss(vrnn, lossHist, num_iterations)
+    # vrnn, lossHistVrnn = runTraining(vrnn, X, num_iterations)
+    # generateAndLogSequence(vrnn, X, num_iterations, lossHistVrnn[-1])
+    # plotLoss(vrnn, lossHistVrnn, num_iterations)
 
-    # lstm, lossHist = runTraining(lstm, X, num_iterations)
-    # generateAndLogSequence(lstm, X, num_iterations, lossHist[-1])
-    # plotLoss(lstm, lossHist, num_iterations)
+    # lstm, lossHistLstm = runTraining(lstm, X, num_iterations)
+    # generateAndLogSequence(lstm, X, num_iterations, lossHistLstm[-1])
+    # plotLoss(lstm, lossHistLstm, num_iterations)
 
-    lstm_2l, lossHist = runTraining(lstm_2l, X, num_iterations)
-    generateAndLogSequence(lstm_2l, X, num_iterations, lossHist[-1])
-    plotLoss(lstm_2l, lossHist, num_iterations)
+    # lstm_2l, lossHistLstm2 = runTraining(lstm_2l, X, num_iterations)
+    # generateAndLogSequence(lstm_2l, X, num_iterations, lossHistLstm2[-1])
+    # plotLoss(lstm_2l, lossHistLstm2, num_iterations)
 
+    # rnn_list = [vrnn,lstm,lstm_2l]
+    # lossHist_list = [lossHistVrnn, lossHistLstm, lossHistLstm2]
+    # multiPlotLoss(rnn_list, num_iterations, lossHist_list)
+
+    runEtaSigmaGridSearch(X,K,m,num_iterations)
 
 
 # =====================================================
 # ----------------- HELPER METHODS --------------------
 # =====================================================
 
+def runEtaSigmaGridSearch(X,K,m,num_iterations): 
 
-def runTraining(rnn, X, num_iterations):
+    etas = [0.01, 0.05, 0.1, 0.2, 0.5]
+    sigmas = [0.5, 0.2, 0.1, 0.05, 0.01]
+
+    lossHissList_lstm  = np.zeros((len(etas),len(sigmas))) 
+    lossHissList_lstm2 = np.zeros((len(etas),len(sigmas))) 
+
+    for r,eta in enumerate(etas):
+       for c,sigma in enumerate(sigmas):
+            print("Testing new params:")
+            print("eta = " + str(eta) + ", sigma = " + str(sigma))
+
+            lstm = LSTM(
+                K=K,
+                m=m,
+                sigma=sigma,
+                seed=2
+            )
+
+            lstm_2l = LSTM_2L(
+                K=K,
+                m=m,
+                sigma=sigma,
+                seed=2
+            )
+
+            lstm, lossHistLstm = runTraining(lstm, X, num_iterations, eta)
+            lstm_bestloss = min(lossHistLstm)
+            lossHissList_lstm[r][c] = lstm_bestloss
+
+            lstm_2l, lossHistLstm2 = runTraining(lstm_2l, X, num_iterations, eta)
+            lstm2_bestloss = min(lossHistLstm2)
+            lossHissList_lstm2[r][c] = lstm2_bestloss
+
+    paramSearchHeatmap(lstm, num_iterations, 'eta', etas, 'sigma', sigmas, lossHissList_lstm)  
+    paramSearchHeatmap(lstm_2l, num_iterations, 'eta', etas, 'sigma', sigmas, lossHissList_lstm2)  
+
+def runTraining(rnn, X, num_iterations, eta=0.1):
 
     m = rnn.m
 
@@ -132,7 +174,7 @@ def runTraining(rnn, X, num_iterations):
         x_seq = X[e][:-1]
         y_seq = X[e][1:]
 
-        rnn.train(x_seq, y_seq, eta=0.1)
+        rnn.train(x_seq, y_seq, eta=eta)
         loss = rnn.computeLoss(x_seq, y_seq)
 
         loss_smooth = 0.999 * loss_smooth + 0.001 * loss
@@ -172,43 +214,36 @@ def runTraining(rnn, X, num_iterations):
                 break
 
     rnn.weights = weights_best
-    logTrainingResults(rnn, num_iterations, loss_smooth, loss_best)
-    
+    logTrainingResults(rnn, num_iterations, lossHist, loss_best)
+    logLossHiss(rnn, num_iterations, lossHist)
     return rnn, lossHist
 
-def logTrainingResults(rnn, num_iterations, loss_smooth, loss_best):
+def logTrainingResults(rnn, num_iterations, lossHist, loss_best):
     now = datetime.now()
     f = open(log_path + "trainingResults.txt", "a")
     f.write("New Training Log, time: " + now.strftime("%d/%m/%Y %H:%M:%S") + "\n")
     f.write("Model type: " + rnn.type + ", m: " + str(rnn.m) + ", sigma: " + str(rnn.sigma) + "\n")
-    f.write("Num_iterations: " + str(num_iterations) + ", current_loss: " + str(loss_smooth) + ", best_loss: " + str(loss_best) + "\n")
+    f.write("Num_iterations: " + str(num_iterations) + ", current_loss: " + str(lossHist[-1]) + ", best_loss: " + str(loss_best) + "\n")
+    f.write("\n")
+    f.close()
+
+def logLossHiss(rnn, num_iterations, lossHist): 
+    now = datetime.now()
+    f = open(log_path + 'loss_hiss/' + str(rnn.type) + '_' + str(num_iterations) + '_' + now.strftime("%H%M%S") + '.txt', "w")
+    f.writelines(str(lossHist))
     f.write("\n")
     f.close()
     
 def generateAndLogSequence(rnn, X, num_iterations, loss_smooth):
     sequence = printAndReturnSequence(rnn, X)
     now = datetime.now()
-    f = open(log_path + str(rnn.type) + '_' + str(num_iterations) + '_text_generation.txt', "w")
+    f = open(log_path + '/text_generation/' + str(rnn.type) + '_' + str(num_iterations) + '_text_generation.txt', "w")
     f.write("Text generation for model type " + rnn.type + " at time: " + now.strftime("%d/%m/%Y %H:%M:%S") + "\n")
     f.write("Num_iterations: " + str(num_iterations) + ", current_loss: " + str(loss_smooth) + "\n")
     f.write("Generated text: \n \n")
     f.write(sequence)
     f.write("\n")
     f.close()
-
-def plotLoss(rnn, lossHist, num_iterations):
-
-    plotTitle = "Smooth loss for {rnnType}, after {num_iterations} iterations".format(rnnType = rnn.type, num_iterations = num_iterations)
-
-    # plot results
-    steps = [step * 10 for step in range(len(lossHist))]
-    plt.plot(steps, lossHist, 'r', linewidth=1.5, alpha=1.0, label='Loss')
-    plt.xlim(0, steps[-1])
-    plt.xlabel('Iterations')
-    plt.ylabel('Loss', rotation=0, labelpad=20)
-    plt.title(plotTitle)
-    plt.savefig(plot_path + str(rnn.type) + '_' + str(rnn.sigma) + '_' + str(num_iterations) + '_iter_loss.png', dpi=200)
-    plt.clf()
 
 def printAndReturnSequence(rnn, X):
 
