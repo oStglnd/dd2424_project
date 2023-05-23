@@ -1,0 +1,33 @@
+Text generation for model type LSTM_2L at time: 23/05/2023 12:24:51
+Num_iterations: 20000, current_loss: 43.50687406196977
+Generated text: 
+ 
+F;
+As lary hand to his attheries alone,
+To parefer morruss and all it to the looks, and say and newse since;
+I am this the bose
+The assay deed as my many stire by my will a sweet thou well, and with were for betwerts and would, she tedrich,
+And that hand strate.
+
+ROMEO:
+Fraiged,
+I shall sweet and she is me, secpiress thy strack and well, be that thy wilt a so to stengume;
+To will and lard.
+
+Nurse:
+I have thes is a bery say would and man any stand sir, cheeth it they world and thou stand as thou lood, and thou worth.
+
+ROMEO:
+That you strenamess were my long.
+
+Nurse:
+I sarr'd to he my sit, from her be would death of place: when I toment she the some grace, her cannot the hear of thy saint.
+
+Nurse:
+He sine I to the should for a take to that I say would my fair from hath to a musens, the prombriste. I many swear?
+
+ROMEO:
+And we have as the dude that it is night thy have march there she their well this near.
+
+Nurse:
+Nay, with steebs, by that as that the sin chandon hear the sucring, gake she

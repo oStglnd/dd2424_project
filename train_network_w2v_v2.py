@@ -22,8 +22,8 @@ def trainNetwork(
     # get paths
     # home_path = os.path.dirname(os.getcwd())
     home_path = os.getcwd()
-    data_path = home_path + '\\data\\'
-    model_path = home_path + '\\models\\'
+    data_path = home_path + '/data/'
+    model_path = home_path + '/models/'
     # results_path = home_path + '\\a4\\results\\'
     
     # get text data

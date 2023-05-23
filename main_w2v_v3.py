@@ -6,7 +6,7 @@ from train_network_w2v_v2 import trainNetwork
 
 # get paths
 home_path = os.getcwd()
-results_path = home_path + '\\results\\'
+results_path = home_path + '/results/'
 
 # set filename
 fname = 'training_v2'

@@ -1,0 +1,4 @@
+Text generation for model type LSTM at time: 22/05/2023 20:45:47
+Num_iterations: 100000, current_loss: 128.98130193141822
+Generated text: 
+ 
