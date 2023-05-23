@@ -1,40 +1,50 @@
-Text generation for model type LSTM at time: 19/05/2023 00:28:29
-Num_iterations: 20000, current_loss: 44.882056936200456
+Text generation for model type LSTM at time: 23/05/2023 15:15:43
+Num_iterations: 20000, current_loss: 45.181650397194936
 Generated text: 
  
-Frest
-'tisbloge of 'stan and; the dound bit,
-Bution! thus fool-let a mank leas ry's fairs: why, sweace; I
-Awerethouk his broph,
-How; suts do, by thou ambacks, and have!
-Betser never and was royales-'ll spikesters? Come of a gear comen?
+Fled his wow nightrint one foull, nor it will the was in cirsing to day and now by life till trutter
+Go wind,
+And me,
+The is thee,
+I like ardare what you, I'll upon thy may any should as.
+Ning pear:
+Or than
+sad, fill I pray me.
 
-MERCUTIO:
-Leave you, sweat old-bursebar,
-Neas: Youncennot, the devore in why-cfarnting thereforss thee die
+BULEICO:
+It agan:
+I bint ffom his see me a may I is adoutter's steer and on the be.
 
-HENRRUTIN:
-I am that a wencice towry?
+GAEA STOBEE:
+So, and were me is wold yet here ayo suidely and earth; and tit in him, shay very:
+Jussce
+And que.
 
-Yerrent:
-HaC wer, thuser ullaips. I case is eles,
-Mornuty; my, to thy head of a mas butys-betuen, fleay she faph-
-
-JULEUTET:
-There-swoulds the mast did me; I to-mur, hall to glonce for to hearneancel weth up; dast to gint:
-Ty been it Clmement nire:
-On, fliet shall lady boey advers with will nod.
+Nurse:
+Woulds to my tumple as love I' than roday nather hous efurin?
+Fareself'st thou honour with lady masonb altiremand.
 
 ROMEO:
-I sway gevelst heart ever-age our you hous it mine?
+Cuth, in hin.
 
-CRUYOU:
-Richon twant, mote, .
+Nurse:
+You,
+I look.
 
-JELVOLIO:
-O, by thus in my light-leve,
-And sem; whyse to fears, son-leariage upwas young,
-Romeo, mistreful mistreff's can,
-so the weoken, praved good one rumay.
-Fort, is this brisain be thee nits, offed, be
-MyYess in it thy park
+Nurse:
+I were for come that nest it quet, threaks, her know be for sumper sid the bestruse
+!t now a larvans do her my that.
+
+MERCUTI:
+I will not here I, sue.
+
+NURIE:
+No bender in benity a
+Hy; sholl, what the fanuke of murting the pirgh is conmert for theal will of thy notrer.
+
+NRRCEE:
+Nor have I with day tould:
+Mowerk noblany gazes!
+
+MERCUTIO:
+bake, such but thy the duilt, when, of on the sick thou hasw m

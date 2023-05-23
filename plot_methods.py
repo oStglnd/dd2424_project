@@ -81,7 +81,7 @@ def multiPlotLossBare(rnn_type_list, num_iterations, lossHist_list):
 
 def multiPlotLossHiddenLayer(rnn_type, num_iterations, lossHist_list, test_set):
 
-    plotTitle = "Smooth loss on {test_set} set".format(test_set = test_set)
+    plotTitle = "Smooth loss for LSTM on {test_set} set".format(test_set = test_set)
 
     # line_colors = ['#ffc9bb','#ff8164','#ff4122','#c61a09','#b60503']
     line_colors = ['r','g','b','c','m','y']

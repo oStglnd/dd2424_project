@@ -88,22 +88,22 @@ def main():
         seed=2
     )
 
-    num_iterations = 100
+    num_iterations = 20000
 
     vrnn, lossHistVrnn_train, lossHistVrnn_test = runTraining(vrnn, X_train, X_val, num_iterations)
-    #generateAndLogSequence(vrnn, X_train, num_iterations, lossHistVrnn_train[-1])
-    #plotLoss(vrnn, lossHistVrnn_train, num_iterations, 'train')
-    #plotLoss(vrnn, lossHistVrnn_test, num_iterations, 'validation')
+    generateAndLogSequence(vrnn, X_train, num_iterations, lossHistVrnn_train[-1])
+    # plotLoss(vrnn, lossHistVrnn_train, num_iterations, 'train')
+    # plotLoss(vrnn, lossHistVrnn_test, num_iterations, 'validation')
 
     lstm, lossHistLstm_train, lossHistLstm_test = runTraining(lstm, X_train, X_val, num_iterations)
-    #generateAndLogSequence(lstm, X, num_iterations, lossHistLstm[-1])
-    #plotLoss(lstm, lossHistLstm_train, num_iterations, 'train')
-    #plotLoss(lstm, lossHistLstm_test, num_iterations, 'validation')
+    generateAndLogSequence(lstm, X_train, num_iterations, lossHistLstm_train[-1])
+    # plotLoss(lstm, lossHistLstm_train, num_iterations, 'train')
+    # plotLoss(lstm, lossHistLstm_test, num_iterations, 'validation')
 
     lstm_2l, lossHistLstm2_train, lossHistLstm2_test = runTraining(lstm_2l, X_train, X_val, num_iterations)
-    #generateAndLogSequence(lstm_2l, X, num_iterations, lossHistLstm2[-1])
-    #plotLoss(lstm, lossHistLstm2_train, num_iterations, 'train')
-    #plotLoss(lstm, lossHistLstm2_test, num_iterations, 'validation')
+    generateAndLogSequence(lstm_2l, X_train, num_iterations, lossHistLstm2_train[-1])
+    # plotLoss(lstm, lossHistLstm2_train, num_iterations, 'train')
+    # plotLoss(lstm, lossHistLstm2_test, num_iterations, 'validation')
 
     # rnn_list = [vrnn,lstm,lstm_2l]
     # lossHist_list_train = [lossHistVrnn_train, lossHistLstm_train, lossHistLstm2_train]
@@ -113,7 +113,7 @@ def main():
 
     # runEtaSigmaGridSearch(X_train, X_val,K,m,num_iterations)
 
-    runHiddenLayerSearch(X_train, X_val,K,m,sigma,num_iterations)
+    #runHiddenLayerSearch(X_train, X_val,K,m,sigma,num_iterations)
 
 
 # =====================================================

@@ -1,30 +1,36 @@
-Text generation for model type LSTM at time: 19/05/2023 00:31:03
-Num_iterations: 100, current_loss: 101.47089416669488
+Text generation for model type LSTM at time: 23/05/2023 15:11:21
+Num_iterations: 100, current_loss: 100.26736776011941
 Generated text: 
  
-Fne rony meMi
-.
-Head zei:o;aInse wthhtkst ritheshtdanu'dlko
-thny  uebe, reon eotheano
-a nruttyfsmt pe wahpr,y ve: Ih ?nco a honme l lslOnuvns rers  oona Moic t:a mo ?oursuissySaoosn A,anit., o,n hhr ror  heb, ane ielLtte.
+Fhhur
+'ngg shdn:than oners ,am chas her invelv
+y he,s
+so, baasy wow Cen gs neteh theteNen: Cit strnt smoun
+d.Whh thasilidhed sho
+t woust worss os heyu ov
+.him.
 
-hhidku s uhta, roky, Whente whaenm beehediniInt s lndao lws  lpy Nni, rr  ehae yla: .oche howoknt
-Rrnguioheyu Ienk. ghst thecosastk noeh ,el ' ze onr shlr pehem ,ino
-;ns tooan 
-nr Iltee buhegapusntdan  hecas sfsth dytrst ls  hao seism , Yh Se? , dey:
+,
+aths iowle ynek; 
+yS thol me,  enyo ned
+Warrt her d hare ndaho; bored ;
+srstmesey pa!reeust: helmelxpend!ckicN,ly salest Awahelrs vh waten  hoek onhtn bow Whe;uso aily:,
+h?.
+s Aa:e her
+Fpekthadi wnoe
+ hrskentgh, ahiyrsspres coist her thlkocaty
+?:
+worst aoh
+Yait. he .heit coruns anwe cutimgr: Chayh ne dol.'at 
+hoFanwl wooehhpayttis wen:sCBaolles gher o'e n:imTmefv'n, bn Nsrouven: rbve shl hth Iird sinoAouag hef oXyli ?halucst Tenl anuIA. in!ly ho ge
+Cite relhci?rs, tirs phhyt aele tinnt ,u vitrn, yrt hit the hothownRtthy iao sFrod wheeon
+Uncsa noW doar nhdor lFitizen..kWathon: llv as oftes kount tortv:
+Mifht kihenyome au!
+ hereio
+!Fulo enp; som!v pwdal wof!ll he, laltlt odrurtahenh o tonthtinss twsusWt !ogsk bereu st mhu whert ulunll! Ciuettaal:
 
- u hes  hea rte gonsdthonowthorawitirozamh goiny bithg eun pay Covemrot,
-Finpgipayhsnesuuuaimonahoccu.ts, cor.
-olfwrr
-.ize pee taon
-co;t As apNocs sslc osedCu'trating hen sosingt:
-bhnekphathiseo
-utlkn ld lrs:lyedryh
-:: soudCoCwe . mit w;e,u thesai,ecess uolnfrnlizeva! aici  eotae cho; sorenfoesdmogsatnaha blol natat: th cotsd Ieey
-f tamo?Asen thouaoo humstr,eesmoasnt oes thshasss m y nony waehheec otdpirez thsst V  houdzryapso.
-whtaedu
-s
-bhes vseuyma ro'd revedUjh thodpitau ghkomvw 
-;nslm seeayghspthena
-Nhe 
- hauhl: wt a
+FCast Viyrz sal
+way noEfu:
+aneiu:
+bmiynrst amhit he tooe lnrt hee the
+RutnienH he 

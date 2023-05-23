@@ -1363,3 +1363,139 @@ New Training Log, time: 23/05/2023 03:58:40
 Model type: LSTM_2L, m: 100, sigma: 0.01
 Num_iterations: 5000, current_loss: 76.4430165365592, best_loss: 76.039394366566
 
+New Training Log, time: 23/05/2023 14:57:42
+Model type: LSTM, m: 10, sigma: 0.1
+Num_iterations: 100, current_loss: 101.33100025262533, best_loss: 101.33100025262533, result_type: train
+
+New Training Log, time: 23/05/2023 14:57:42
+Model type: LSTM, m: 10, sigma: 0.1
+Num_iterations: 100, current_loss: 102.09852408720072, best_loss: 102.09852408720072, result_type: val
+
+New Training Log, time: 23/05/2023 14:57:42
+Model type: LSTM, m: 50, sigma: 0.1
+Num_iterations: 100, current_loss: 100.55982453130144, best_loss: 100.55982453130144, result_type: train
+
+New Training Log, time: 23/05/2023 14:57:42
+Model type: LSTM, m: 50, sigma: 0.1
+Num_iterations: 100, current_loss: 102.22766704013087, best_loss: 102.22766704013087, result_type: val
+
+New Training Log, time: 23/05/2023 14:57:43
+Model type: LSTM, m: 100, sigma: 0.1
+Num_iterations: 100, current_loss: 100.56018193685786, best_loss: 100.56018193685786, result_type: train
+
+New Training Log, time: 23/05/2023 14:57:43
+Model type: LSTM, m: 100, sigma: 0.1
+Num_iterations: 100, current_loss: 102.76159645714937, best_loss: 102.76159645714937, result_type: val
+
+New Training Log, time: 23/05/2023 14:57:44
+Model type: LSTM, m: 150, sigma: 0.1
+Num_iterations: 100, current_loss: 101.41573836492964, best_loss: 101.41573836492964, result_type: train
+
+New Training Log, time: 23/05/2023 14:57:44
+Model type: LSTM, m: 150, sigma: 0.1
+Num_iterations: 100, current_loss: 103.01338091895833, best_loss: 103.01338091895833, result_type: val
+
+New Training Log, time: 23/05/2023 14:57:46
+Model type: LSTM, m: 200, sigma: 0.1
+Num_iterations: 100, current_loss: 101.31346279121018, best_loss: 101.31346279121018, result_type: train
+
+New Training Log, time: 23/05/2023 14:57:46
+Model type: LSTM, m: 200, sigma: 0.1
+Num_iterations: 100, current_loss: 103.03142706619802, best_loss: 103.03142706619802, result_type: val
+
+New Training Log, time: 23/05/2023 15:00:18
+Model type: LSTM, m: 10, sigma: 0.1
+Num_iterations: 10000, current_loss: 58.447394200643274, best_loss: 58.34611326696276, result_type: train
+
+New Training Log, time: 23/05/2023 15:00:18
+Model type: LSTM, m: 10, sigma: 0.1
+Num_iterations: 10000, current_loss: 62.090217884444385, best_loss: 61.565565659565586, result_type: val
+
+New Training Log, time: 23/05/2023 15:01:16
+Model type: LSTM, m: 50, sigma: 0.1
+Num_iterations: 10000, current_loss: 47.85974696381259, best_loss: 46.74924356978998, result_type: train
+
+New Training Log, time: 23/05/2023 15:01:16
+Model type: LSTM, m: 50, sigma: 0.1
+Num_iterations: 10000, current_loss: 57.16246026189161, best_loss: 56.5424652810959, result_type: val
+
+New Training Log, time: 23/05/2023 15:02:28
+Model type: LSTM, m: 100, sigma: 0.1
+Num_iterations: 10000, current_loss: 43.57490703818078, best_loss: 42.676957003059904, result_type: train
+
+New Training Log, time: 23/05/2023 15:02:28
+Model type: LSTM, m: 100, sigma: 0.1
+Num_iterations: 10000, current_loss: 55.73385712857731, best_loss: 55.03575704961057, result_type: val
+
+New Training Log, time: 23/05/2023 15:04:37
+Model type: LSTM, m: 150, sigma: 0.1
+Num_iterations: 10000, current_loss: 42.29156045826367, best_loss: 42.016950868378224, result_type: train
+
+New Training Log, time: 23/05/2023 15:04:37
+Model type: LSTM, m: 150, sigma: 0.1
+Num_iterations: 10000, current_loss: 55.520518201833056, best_loss: 54.945899293454715, result_type: val
+
+New Training Log, time: 23/05/2023 15:07:35
+Model type: LSTM, m: 200, sigma: 0.1
+Num_iterations: 10000, current_loss: 41.063771406858216, best_loss: 40.56174431983259, result_type: train
+
+New Training Log, time: 23/05/2023 15:07:35
+Model type: LSTM, m: 200, sigma: 0.1
+Num_iterations: 10000, current_loss: 55.50816524510459, best_loss: 54.899541377356584, result_type: val
+
+New Training Log, time: 23/05/2023 15:10:16
+Model type: VanillaRNN, m: 100, sigma: 0.1
+Num_iterations: 100, current_loss: 103.55832836804449, best_loss: 103.55832836804449, result_type: train
+
+New Training Log, time: 23/05/2023 15:10:16
+Model type: VanillaRNN, m: 100, sigma: 0.1
+Num_iterations: 100, current_loss: 104.62728241714903, best_loss: 104.15769115527189, result_type: val
+
+New Training Log, time: 23/05/2023 15:11:20
+Model type: VanillaRNN, m: 100, sigma: 0.1
+Num_iterations: 100, current_loss: 103.90696435339729, best_loss: 102.48857510582448, result_type: train
+
+New Training Log, time: 23/05/2023 15:11:20
+Model type: VanillaRNN, m: 100, sigma: 0.1
+Num_iterations: 100, current_loss: 105.2408823483127, best_loss: 104.32079094757547, result_type: val
+
+New Training Log, time: 23/05/2023 15:11:21
+Model type: LSTM, m: 100, sigma: 0.1
+Num_iterations: 100, current_loss: 100.26736776011941, best_loss: 100.26736776011941, result_type: train
+
+New Training Log, time: 23/05/2023 15:11:21
+Model type: LSTM, m: 100, sigma: 0.1
+Num_iterations: 100, current_loss: 102.27289571456814, best_loss: 102.27289571456814, result_type: val
+
+New Training Log, time: 23/05/2023 15:11:23
+Model type: LSTM_2L, m: 100, sigma: 0.1
+Num_iterations: 100, current_loss: 101.76882318995536, best_loss: 101.76882318995536, result_type: train
+
+New Training Log, time: 23/05/2023 15:11:23
+Model type: LSTM_2L, m: 100, sigma: 0.1
+Num_iterations: 100, current_loss: 103.11776902442853, best_loss: 103.11776902442853, result_type: val
+
+New Training Log, time: 23/05/2023 15:13:18
+Model type: VanillaRNN, m: 100, sigma: 0.1
+Num_iterations: 20000, current_loss: 48.59308270025589, best_loss: 47.00366388373125, result_type: train
+
+New Training Log, time: 23/05/2023 15:13:18
+Model type: VanillaRNN, m: 100, sigma: 0.1
+Num_iterations: 20000, current_loss: 57.42708927324408, best_loss: 57.40361549961935, result_type: val
+
+New Training Log, time: 23/05/2023 15:15:42
+Model type: LSTM, m: 100, sigma: 0.1
+Num_iterations: 20000, current_loss: 45.181650397194936, best_loss: 42.9813396846563, result_type: train
+
+New Training Log, time: 23/05/2023 15:15:42
+Model type: LSTM, m: 100, sigma: 0.1
+Num_iterations: 20000, current_loss: 52.48242176152349, best_loss: 52.46260894873444, result_type: val
+
+New Training Log, time: 23/05/2023 15:20:31
+Model type: LSTM_2L, m: 100, sigma: 0.1
+Num_iterations: 20000, current_loss: 46.73323278092064, best_loss: 45.31386953263157, result_type: train
+
+New Training Log, time: 23/05/2023 15:20:31
+Model type: LSTM_2L, m: 100, sigma: 0.1
+Num_iterations: 20000, current_loss: 54.951146402966856, best_loss: 54.92133742480618, result_type: val
+
