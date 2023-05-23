@@ -88,7 +88,7 @@ def main():
         seed=2
     )
 
-    num_iterations = 100
+    num_iterations = 20000
 
     vrnn, lossHistVrnn_train, lossHistVrnn_test = runTraining(vrnn, X_train, X_val, num_iterations)
     #generateAndLogSequence(vrnn, X_train, num_iterations, lossHistVrnn_train[-1])
