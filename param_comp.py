@@ -58,7 +58,7 @@ g = sns.catplot(
     height=6
 )
 
-plt.ylim(1.5, 2.5)
+plt.ylim(1.4, 2.2)
 plt.xlabel('Number of layers')
 plt.ylabel('Loss', rotation=0, labelpad=15)
 plt.title('Mean loss for last 5000 steps')
@@ -81,7 +81,7 @@ g = sns.catplot(
     height=6
 )
 
-plt.ylim(1.5, 2.5)
+plt.ylim(1.4, 2.2)
 plt.xlabel('Number of layers')
 plt.ylabel('Loss', rotation=0, labelpad=15)
 plt.title('Mean loss for last 5000 steps')

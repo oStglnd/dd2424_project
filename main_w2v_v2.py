@@ -9,15 +9,15 @@ home_path = os.getcwd()
 results_path = home_path + '\\results\\'
 
 # set filename
-fname = 'training_v3'
+fname = 'training_v4'
 fpath = results_path + fname
 
 # init dictionary for saving
 saveDict = {
-    'model_v300':{
-        'n_epochs':2,
+    'model_v400':{
+        'n_epochs':5,
         'embeddings':True,
-        'embedding_dim':200,
+        'embedding_dim':300,
         'seq_length':100,
         'units':[500]
     },
