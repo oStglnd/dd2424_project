@@ -9,99 +9,99 @@ home_path = os.getcwd()
 results_path = home_path + '\\results\\'
 
 # set filename
-fname = 'training_v1'
+fname = 'training_v3'
 fpath = results_path + fname
 
 # init dictionary for saving
 saveDict = {
-    'model_v10':{
+    'model_v300':{
         'n_epochs':2,
         'embeddings':True,
-        'embedding_dim':100,
-        'seq_length':50,
-        'units':[100]
+        'embedding_dim':200,
+        'seq_length':100,
+        'units':[500]
     },
-    'model_v11':{
-        'n_epochs':2,
-        'embeddings':True,
-        'embedding_dim':100,
-        'seq_length':50,
-        'units':[100, 100]
-    },
+    # 'model_v01':{
+    #     'n_epochs':2,
+    #     'embeddings':True,
+    #     'embedding_dim':100,
+    #     'seq_length':50,
+    #     'units':[100, 100]
+    # },
     
-    'model_v12':{
-        'n_epochs':2,
-        'embeddings':True,
-        'embedding_dim':100,
-        'seq_length':50,
-        'units':[100, 50]
-    },
-    'model_v13':{
-        'n_epochs':2,
-        'embeddings':True,
-        'embedding_dim':100,
-        'seq_length':50,
-        'units':[100, 100, 100]
-    },
+    # 'model_v02':{
+    #     'n_epochs':2,
+    #     'embeddings':True,
+    #     'embedding_dim':100,
+    #     'seq_length':50,
+    #     'units':[100, 50]
+    # },
+    # 'model_v03':{
+    #     'n_epochs':2,
+    #     'embeddings':True,
+    #     'embedding_dim':100,
+    #     'seq_length':50,
+    #     'units':[100, 100, 100]
+    # },
     
-    'model_v14':{
-        'n_epochs':2,
-        'embeddings':True,
-        'embedding_dim':100,
-        'seq_length':50,
-        'units':[100, 100, 50]
-    },
-    'model_v15':{
-        'n_epochs':2,
-        'embeddings':True,
-        'embedding_dim':100,
-        'seq_length':50,
-        'units':[100, 100, 50, 50]
-    },
-    'model_v16':{
-        'n_epochs':2,
-        'embeddings':True,
-        'embedding_dim':100,
-        'seq_length':100,
-        'units':[100]
-    },
-    'model_v17':{
-        'n_epochs':2,
-        'embeddings':True,
-        'embedding_dim':100,
-        'seq_length':100,
-        'units':[100, 100]
-    },
+    # 'model_v04':{
+    #     'n_epochs':2,
+    #     'embeddings':True,
+    #     'embedding_dim':100,
+    #     'seq_length':50,
+    #     'units':[100, 100, 50]
+    # },
+    # 'model_v05':{
+    #     'n_epochs':2,
+    #     'embeddings':True,
+    #     'embedding_dim':100,
+    #     'seq_length':50,
+    #     'units':[100, 100, 50, 50]
+    # },
+    # 'model_v06':{
+    #     'n_epochs':2,
+    #     'embeddings':True,
+    #     'embedding_dim':100,
+    #     'seq_length':100,
+    #     'units':[100]
+    # },
+    # 'model_v07':{
+    #     'n_epochs':2,
+    #     'embeddings':True,
+    #     'embedding_dim':100,
+    #     'seq_length':100,
+    #     'units':[100, 100]
+    # },
     
-    'model_v18':{
-        'n_epochs':2,
-        'embeddings':True,
-        'embedding_dim':100,
-        'seq_length':100,
-        'units':[100, 50]
-    },
-    'model_v19':{
-        'n_epochs':2,
-        'embeddings':True,
-        'embedding_dim':100,
-        'seq_length':100,
-        'units':[100, 100, 100]
-    },
+    # 'model_v08':{
+    #     'n_epochs':2,
+    #     'embeddings':True,
+    #     'embedding_dim':100,
+    #     'seq_length':100,
+    #     'units':[100, 50]
+    # },
+    # 'model_v09':{
+    #     'n_epochs':2,
+    #     'embeddings':True,
+    #     'embedding_dim':100,
+    #     'seq_length':100,
+    #     'units':[100, 100, 100]
+    # },
     
-    'model_v20':{
-        'n_epochs':2,
-        'embeddings':True,
-        'embedding_dim':100,
-        'seq_length':100,
-        'units':[100, 100, 50]
-    },
-    'model_v21':{
-        'n_epochs':2,
-        'embeddings':True,
-        'embedding_dim':100,
-        'seq_length':100,
-        'units':[100, 100, 50, 50]
-    },
+    # 'model_v010':{
+    #     'n_epochs':2,
+    #     'embeddings':True,
+    #     'embedding_dim':100,
+    #     'seq_length':100,
+    #     'units':[100, 100, 50]
+    # },
+    # 'model_v011':{
+    #     'n_epochs':2,
+    #     'embeddings':True,
+    #     'embedding_dim':100,
+    #     'seq_length':100,
+    #     'units':[100, 100, 50, 50]
+    # },
 }
 
 for model, params in saveDict.items():
