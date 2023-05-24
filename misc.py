@@ -7,8 +7,8 @@ from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import SnowballStemmer
 from nltk import WordNetLemmatizer
-
 import re
+
 def getAllWords(d):
     text_filtered = re.sub(r'[^a-z ]', '', d.lower()).split(" ")
     text_filtered2 = []
@@ -36,6 +36,7 @@ def countCorrectWords(guess, truth):
     total_words = len(filtered_guess)
     # res = "Valid words generated {} out of {}".format(num_correct_words, total_words)
     return num_correct_words/total_words
+
 def bleu(guess, truth, word_dict):
     def match_seq_len(guess_word_array, truth_word_array):
         match_count = 0

@@ -158,17 +158,31 @@ class LSTM:
     def synthesizeText(
             self,
             x0: np.array,
-            n: int
+            n: int,
+            threshold: float,
+            temperature: float
         ) -> list:
-        
-        
-        # h = np.zeros(shape=(self.m, 1))
-        # c = np.zeros(shape=(self.m, 1))
         
         xList = [x0]
         yList = []
         for _ in range(n):
-            p, _, _, _, _, _, _ = self.evaluate(xList[-1], train=True)
+            p, _, _, _, _, _, _ = self.evaluate(
+                xList[-1], 
+                train=True, 
+                temperature=temperature
+            )
+            
+            # nucleus sampling START
+            p_tuples = list(enumerate(p))
+            p_tuples.sort(key=lambda x:x[1], reverse=True)
+            prob_mass = 0.0
+            i = 0
+            while prob_mass < (threshold - 10e-4):
+                prob_mass += p_tuples[i][1]
+                i += 1
+ 
+            id, probabilities = zip(*p_tuples[0:i])  # gets top i number of tokens that make up 95% prob-distr.
+            probabilities /= prob_mass        # normalize
             
             idxNext = np.random.choice(
                 a=range(self.K_out), 
@@ -190,7 +204,8 @@ class LSTM:
     def evaluate(
             self, 
             X: np.array,
-            train: bool
+            train: bool,
+            temperature: 1.0
         ) -> np.array:
         """
         Parameters
@@ -240,7 +255,10 @@ class LSTM:
             cc.append(np.hstack(ccList))
             h.append(np.hstack(hList))
         
-        P = softMax(self.layers[-1]['V'] @ H[:, 1:] + self.layers[-1]['c'])
+        P = softMax(
+            self.layers[-1]['V'] @ H[:, 1:] + self.layers[-1]['c'],
+            temperature=temperature
+        )
         
         # update hprev
         if train:
